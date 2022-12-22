@@ -1,0 +1,18 @@
+  [@b.card class="card-primary card-outline"]
+    [@b.card_header]
+      <h3 class="card-title"><i class="fa-sharp fa-solid fa-chalkboard"></i> 编辑公告</h3>
+      [@b.card_tools]
+        <button class="btn btn-sm btn-primary" onclick="bg.form.submit('bulletinForm')"><i class="fa fa-save"></i>保存</button>
+      [/@]
+    [/@]
+    [@b.card_body style="padding: 0px 20px;"]
+      [@b.form name="bulletinForm" action="!saveBulletin?clazz.id="+clazz.id theme="list"]
+        [@b.textarea name="bulletin.contents" label="公告内容" value=bulletin.contents! rows="8" maxLength="500" style="width:100%"/]
+        [@b.textfield name="bulletin.contactQrcodePath" label="日常沟通渠道" value=bulletin.contactQrcodePath! required="true" comment="微信群名，QQ号等"/]
+        [@b.file label="沟通渠道二维码" placeholder="上传图片" name="attachment" class="custom-file-input" extensions="jpg,jpeg,png,gif"/]
+        [@b.formfoot]
+          [@b.submit value="保存"/]
+        [/@]
+      [/@]
+    [/@]
+  [/@]

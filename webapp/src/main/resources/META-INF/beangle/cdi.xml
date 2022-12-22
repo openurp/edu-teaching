@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<cdi>
+  <container>
+    <module class="org.openurp.starter.web.ProjectModule"/>
+    <module class="org.openurp.edu.clazz.service.impl.DefaultBindModule"/>
+    <module class="org.openurp.edu.teaching.web.action.DefaultModule"/>
+    <module class="org.openurp.edu.grade.service.impl.DefaultBindModule"/>
+    <module class="org.openurp.edu.grade.service.impl.ConfigBindModule"/>
+  </container>
+</cdi>
