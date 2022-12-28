@@ -63,6 +63,40 @@ class GradeAction extends TeacherSupport {
     forward()
   }
 
+  def state(): View = {
+    val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
+    val project = clazz.project
+    val gradeInputSwitch = getGradeInputSwitch(project, clazz.semester)
+    put("gradeInputSwitch", gradeInputSwitch)
+    var state = clazzGradeService.getState(clazz)
+    if (null == state) state = new CourseGradeState()
+    put("gradeState", state)
+    put("MAKEUP_GA", getCode(classOf[GradeType], GradeType.MakeupGa))
+    put("GA", getCode(classOf[GradeType], GradeType.EndGa))
+    put("clazz", clazz)
+    forward()
+  }
+
+  def info(): View = {
+    val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
+    val grades = entityDao.findBy(classOf[CourseGrade], "clazz", clazz)
+    val examGradeTypes = Collections.newSet[GradeType]
+    grades.foreach { g => g.examGrades.foreach { eg => examGradeTypes.addOne(eg.gradeType) } }
+    val gradeTypes = examGradeTypes.toBuffer.sortBy(_.code)
+    gradeTypes.addOne(getCode(classOf[GradeType], GradeType.EndGa))
+    put("gradeTypes", gradeTypes)
+
+    val state = clazzGradeService.getState(clazz)
+    put("gradeState", state)
+
+    val gradeMap = grades.map(g => (g.std, g)).toMap
+    put("clazz", clazz)
+    put("grades", grades)
+    put("gradeMap", gradeMap)
+    put("GA", getCode(classOf[GradeType], GradeType.EndGa))
+    forward()
+  }
+
   def clazz(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
     val teacher = getTeacher()
@@ -74,7 +108,8 @@ class GradeAction extends TeacherSupport {
     val gradeInputSwitch = getGradeInputSwitch(project, clazz.semester)
     put("gradeInputSwitch", gradeInputSwitch)
     val gaGradeTypes = Collections.newBuffer[GradeType]
-    settings.getSetting(clazz.project).gaElementTypes foreach { gradeType =>
+    val setting = settings.getSetting(clazz.project)
+    setting.gaElementTypes foreach { gradeType =>
       val gt = getCode(classOf[GradeType], gradeType.id)
       if (gradeInputSwitch.types.contains(gt)) gaGradeTypes.addOne(gt)
     }
@@ -84,6 +119,9 @@ class GradeAction extends TeacherSupport {
     put("gaGradeTypes", gradeTypes)
 
     val state = clazzGradeService.getOrCreateState(clazz, gradeTypes, None, None)
+    if (setting.gaElementTypes.size == 1) {
+      state.getState(setting.gaElementTypes.head).asInstanceOf[ExamGradeState].scorePercent = Some(100)
+    }
     put("gradeState", state)
     put("MAKEUP_GA", getCode(classOf[GradeType], GradeType.MakeupGa))
     put("GA", getCode(classOf[GradeType], GradeType.EndGa))

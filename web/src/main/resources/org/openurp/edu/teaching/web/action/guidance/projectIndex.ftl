@@ -5,7 +5,7 @@
   [@b.messages slash="3"/]
   [@base.semester_bar value=semester! formName='courseTableForm'/]
 
-  <div class="card card-info card-primary card-outline">
+  <div class="card card-info card-primary card-outline text-sm">
     <div class="card-header">
       <h3 class="card-title">学生和课程
         <span class="badge badge-primary">${stds?size}</span>

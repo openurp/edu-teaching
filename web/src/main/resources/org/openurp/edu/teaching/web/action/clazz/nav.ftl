@@ -1,6 +1,6 @@
   <div class="row mb-0">
     <div class="col-sm-9">
-    <h4>[@b.a href="!index?clazz.id="+clazz.id]${clazz.crn}[/@] ${clazz.courseName} <span class="text-sm text-muted">${clazz.course.code} ${clazz.semester.schoolYear}学年${clazz.semester.name}学期</span></h4>
+    <h5>[@b.a href="!index?clazz.id="+clazz.id]${clazz.crn}[/@] ${clazz.courseName} <span class="text-sm text-muted">${clazz.course.code} ${clazz.semester.schoolYear}学年${clazz.semester.name}学期</span></h5>
     </div>
     <div class="col-sm-3">
       <div style="float:right;padding:0px" class="navbar navbar-expand">
@@ -16,7 +16,7 @@
             </div>
           </li>
           <li class="nav-item">
-            [@b.a href="coursetable" class="nav-link"]返回课表[/@]
+            [@b.a href="coursetable" class="nav-link"]<i class="fa-solid fa-arrow-left"></i>返回课表[/@]
           </li>
         </ul>
       </div>

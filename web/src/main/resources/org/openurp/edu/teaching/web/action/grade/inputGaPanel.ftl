@@ -35,7 +35,7 @@
                 <td>
                   <input type="text" name="examGradeState${gradeType.id}.scorePercent" value="${(gradeTypeState.scorePercent)!}" style="width:100px;text-align:right" maxlength="3"
                          placeholder="占比" data-toggle="popover" data-trigger="focus" title="录入小贴士"
-                         data-content="例如30,40等百分数占比。录入该项分数时，请录入折算前的原始分数。例如${gradeType.name}90分，占比30%，需要录入90分，不要录入27分。"
+                         data-content="[#if (gradeTypeState.scorePercent!0)<100]例如30,40等百分数占比。录入该项分数时，请录入折算前的原始分数。例如${gradeType.name}90分，占比30%，需要录入90分，不要录入27分。[#else]请将平时成绩和考核成绩折算后录入[/#if]"
                     />
                 </td>
                 [/#if]
@@ -51,7 +51,7 @@
                   [#if ((gradeTypeState.confirmed)!false) || ((gaGradeTypeState.confirmed)!false)]
                    [@small_stateinfo status=(gradeTypeState.status!0)/]
                   [#else]
-                  <div>录入该项成绩时请直接录入<span style='color: red;'>原始分数</span>，不要折算。</div>
+                  [#if  (gradeTypeState.scorePercent!0)<100]<div>录入该项成绩时请直接录入<span style='color: red;'>原始分数</span>，不要折算。</div>[#else]请将平时成绩和考核成绩折算后录入[/#if]
                   [/#if]
                 </td>
               </tr>

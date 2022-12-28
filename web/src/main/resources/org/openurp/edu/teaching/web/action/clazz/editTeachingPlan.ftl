@@ -9,7 +9,7 @@
     [@b.card_body]
       [@b.form name="teachingPlanForm" action="!saveTeachingPlan?clazz.id="+clazz.id style="text-align:justify;"]
         [@b.field label="统一设置"]
-          <input name="allPlaces" value="" placeholder="腾讯会议、网课链接" style="width:70%" oninput="updatePlaces(this.value)"/>
+          <input name="allPlaces" value="" placeholder="腾讯会议号、网课链接" style="width:70%" oninput="updatePlaces(this.value)"/>
         [/@]
         [#list plan.lessons?sort_by("idx") as lesson]
           [@b.field label="#"+(lesson_index+1)+" "+ lesson.openOn?string('MM-dd')]

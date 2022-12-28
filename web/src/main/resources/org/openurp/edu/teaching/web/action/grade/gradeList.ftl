@@ -10,7 +10,7 @@
   [#assign takes = clazz.enrollment.courseTakers?sort_by(["std","code"])/]
   [#assign takeLists = takes?chunk((takes?size+2)/3)]
   [@b.card_body style="padding-top: 0px;"]
-    <table class="table table-hover table-sm table-striped" style="font-size: 13px;">
+    <table class="table table-hover table-sm table-striped">
       <thead>
         <th width="5%">序号</th>
         <th width="12%">学号</th>
