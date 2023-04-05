@@ -99,7 +99,7 @@ class GradeAction extends TeacherSupport {
 
   def clazz(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
-    val teacher = getTeacher()
+    val teacher = getTeacher
     val msg = checkClazzPermission(clazz, teacher)
     if null != msg then return forward("500", msg)
 
@@ -137,7 +137,7 @@ class GradeAction extends TeacherSupport {
 
   def inputGa(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
-    val teacher = getTeacher()
+    val teacher = getTeacher
     var gradeTypes = codeService.get(classOf[GradeType], Strings.splitToInt(get("gradeTypeIds", "")): _*).toList
     val gradingMode = getInt("gradingModeId").map(x => getCode(classOf[GradingMode], x))
     val gradeState = clazzGradeService.getOrCreateState(clazz, gradeTypes, getInt("precision"), gradingMode)
@@ -182,7 +182,7 @@ class GradeAction extends TeacherSupport {
    */
   def saveGa(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
-    val teacher = getTeacher()
+    val teacher = getTeacher
     val project = clazz.project
     val gradeState = clazzGradeService.getState(clazz)
     val check = checkSwitch(clazz, teacher, gradeState)
@@ -219,8 +219,8 @@ class GradeAction extends TeacherSupport {
       if (null != grade) grades.addOne(grade)
     }
     val operator = Securities.user
-    if (submit) updateGradeState(gradeState, gradeTypes, Grade.Status.Confirmed, updatedAt, operator)
-    else updateGradeState(gradeState, gradeTypes, Grade.Status.New, updatedAt, operator)
+    if (submit) gradeState.updateStatus(gradeTypes, Grade.Status.Confirmed, updatedAt, operator)
+    else gradeState.updateStatus(gradeTypes, Grade.Status.New, updatedAt, operator)
     val params = new StringBuilder("&clazzId=" + clazz.id)
     params.append("&gradeTypeIds=")
     for (gradeType <- gradeTypes) {
@@ -264,7 +264,7 @@ class GradeAction extends TeacherSupport {
 
   def removeGa(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
-    val teacher = getTeacher()
+    val teacher = getTeacher
     val gradeState = clazzGradeService.getState(clazz)
     val check = checkSwitch(clazz, teacher, gradeState)
     if (null != check) return check
@@ -296,20 +296,6 @@ class GradeAction extends TeacherSupport {
     if (null == teacher) "只有教师才可以录入成绩"
     else if (!clazz.teachers.contains(teacher)) "没有权限"
     else null
-  }
-
-  @deprecated
-  //FIXME use CourseGradeState.updateStatus
-  protected def updateGradeState(gradeState: CourseGradeState, gradeTypes: Iterable[GradeType], status: Int, updatedAt: Instant, operator: String): Unit = {
-    gradeTypes foreach { gradeType =>
-      if (gradeType.id == GradeType.EndGa) gradeState.status = status
-      val gs = gradeState.getState(gradeType).asInstanceOf[AbstractGradeState]
-      gs.operator = operator
-      gs.status = status
-      gs.updatedAt = updatedAt
-    }
-    gradeState.updatedAt = updatedAt
-    gradeState.operator = operator
   }
 
   private def getGradeInputSwitch(project: Project, semester: Semester) = {

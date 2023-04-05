@@ -14,9 +14,9 @@
   [@b.card_body style="padding-top: 0px;"]
     <table class="table table-hover table-sm table-striped" style="font-size: 13px;">
       <thead>
-        <th width="6%">序号</th>
+        <th width="30px">#</th>
         <th width="12%">学号</th>
-        <th width="10%">姓名</th>
+        <th width="13%">姓名</th>
         [#if tutorSupported]<th width="10%">导师</th>[/#if]
         <th width="20%">院系</th>
         <th>专业</th>
@@ -26,7 +26,7 @@
         <tr>
           <td>${taker_index+1}</td>
           <td>${taker.std.code}</td>
-          <td>${taker.std.name}</td>
+          <td>${taker.std.name}[#if taker.takeType.id != 1]<sup style="color:red">${taker.takeType.name}</sup>[/#if]</td>
           [#if tutorSupported]<td>${(taker.std.tutor.name)!}</td>[/#if]
           <td>${taker.std.state.department.name}</td>
           <td>${(taker.std.state.major.name)!} ${(taker.std.state.direction.name)!}</td>

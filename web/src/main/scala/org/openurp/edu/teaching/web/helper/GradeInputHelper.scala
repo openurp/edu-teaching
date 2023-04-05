@@ -56,7 +56,7 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
     if (stds.nonEmpty) {
       val query2 = OqlBuilder.from(classOf[CourseGrade], "cg")
         .where("cg.project = :project and cg.semester = :semester and cg.course = :course", clazz.project, clazz.semester, clazz.course)
-      query2.where("cg.std in(:stds)", clazz, stds)
+      query2.where("cg.std in(:stds)", stds)
       val grades2 = entityDao.search(query2)
       for (grade <- grades2) {
         gradeMap.put(grade.std, grade)
@@ -154,6 +154,9 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
    */
   def build(clazz: Clazz, gradeState: CourseGradeState, existed: Option[CourseGrade], taker: CourseTaker,
             gradeTypes: Iterable[GradeType], status: Int, updatedAt: Instant): CourseGrade = {
+    //旁听没有成绩
+    if (taker.takeType.id == CourseTakeType.Auditor) return null
+
     val operator = Securities.user
     val grade = existed match {
       case None => buildNewCourseGrade(taker, gradeState, status, updatedAt)
@@ -208,9 +211,9 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
     examStatus = entityDao.get(classOf[ExamStatus], examStatusId)
     var examGrade = grade.getExamGrade(gradeType).orNull
     if (null == examGrade) {
-      //FIXME use ExamGrade(gradeType,,) createdAt,updatedAt
-      examGrade = new ExamGrade(0, gradeType, examScore, null, gradingMode, false, status)
-      examGrade.createdAt = updatedAt
+      examGrade = ExamGrade(gradeType, examStatus, examScore)
+      examGrade.gradingMode = gradingMode
+      examGrade.status = status
       grade.addExamGrade(examGrade)
     }
     grade.updatedAt = updatedAt
@@ -224,27 +227,10 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
    * 新增成绩
    */
   private[helper] def buildNewCourseGrade(taker: CourseTaker, gradeState: CourseGradeState, status: Int, updatedAt: Instant) = {
-    val grade = newGrade(taker)
+    val grade = CourseGrade(taker)
     grade.gradingMode = gradeState.gradingMode
     grade.status = status
-    grade.project = taker.std.project
+    grade.updatedAt = updatedAt
     grade
-  }
-
-  @deprecated("CourseGrade(taker)")
-  //FIXME
-  private def newGrade(taker: CourseTaker): CourseGrade = {
-    val g = new CourseGrade()
-    g.std = taker.std
-    val clazz = taker.clazz
-    g.clazz = Some(clazz)
-    g.crn = clazz.crn
-    g.semester = clazz.semester
-    g.course = clazz.course
-    g.courseType = taker.courseType
-    g.courseTakeType = taker.takeType
-    g.freeListening = taker.freeListening
-    g.createdAt = Instant.now
-    g
   }
 }

@@ -39,7 +39,7 @@
               onblur="checkScore(${index + 1}, this);this.style.backgroundColor='white';"
               tabIndex="${index+1}"
               id="${(gradeType.id)!}_${index + 1}" name="${gradeType.id}_${courseTaker.std.id}"
-          value="[#if grade?string != "null"]${(examGrade.score)!}[/#if]" style="width:35px" maxlength="4" role="gradeInput"/>
+          value="[#if grade?string != "null"]${(examGrade.score)!}[/#if]" style="width:40px" maxlength="5" role="gradeInput"/>
       [#else]
          <select onfocus="this.style.backgroundColor='yellow'"
                   onblur="this.style.backgroundColor='white'"
@@ -78,8 +78,10 @@
     [#if !gradeType.ga]
         [#if (grade.getGrade(gradeType).confirmed)!false]
       <td>${grade.getScoreText(gradeType)!"--"}[#if grade.getGrade(gradeType).examStatus != NormalExamStatus]<sup>${grade.getGrade(gradeType).examStatus.name}</sup>[/#if]</td>
-        [#elseif ((grade.courseTakeType.id)!0)==5]
+        [#elseif ((courseTaker.takeType.id)!0)==5]
         <td>免修</td>
+        [#elseif ((courseTaker.takeType.id)!0)==6]
+        <td>旁听</td>
         [#else]
          [@gradeTd grade, gradeType, courseTaker, index/]
         [/#if]
@@ -121,7 +123,7 @@
     [/#list]
 
     gradeTable.precision=${gradeState.scorePrecision};
-    gradeTable.gradeStateId=${gradeState.id};
+    gradeTable.gradeStateId="${gradeState.id}";
     gradeTable.hasGa=true;
 </script>
 

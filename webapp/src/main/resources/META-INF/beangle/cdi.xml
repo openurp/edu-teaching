@@ -4,7 +4,7 @@
     <module class="org.openurp.starter.web.ProjectModule"/>
     <module class="org.openurp.edu.clazz.service.impl.DefaultBindModule"/>
     <module class="org.openurp.edu.teaching.web.action.DefaultModule"/>
-    <module class="org.openurp.edu.grade.service.impl.DefaultBindModule"/>
-    <module class="org.openurp.edu.grade.service.impl.ConfigBindModule"/>
+    <module class="org.openurp.edu.grade.service.DefaultModule"/>
+    <module class="org.openurp.edu.grade.service.ConfigModule"/>
   </container>
 </cdi>

@@ -1,11 +1,14 @@
 <hr style="margin: 0px;">
   [@b.card_header]
     <h3 class="card-title">
-      <i class="fa-solid fa-list mr-1"></i> 学生名单<span class="badge badge-success">${clazz.enrollment.courseTakers?size}</span>
+      <i class="fa-solid fa-list mr-1"></i> 学生名单及成绩<span class="badge badge-success">${clazz.enrollment.courseTakers?size}</span>
     </h3>
     [@b.card_tools]
     [/@]
   [/@]
+[#macro displayCourseTaker(taker)]
+  ${taker.std.name}[#if taker.takeType.id != 1]<sup style="color:red">${taker.takeType.name}</sup>[/#if]
+[/#macro]
 
   [#assign takes = clazz.enrollment.courseTakers?sort_by(["std","code"])/]
   [#assign takeLists = takes?chunk((takes?size+2)/3)]
@@ -32,18 +35,18 @@
         <tr>
           <td>${i}</td>
           <td>${takeLists[0][i-1].std.code}</td>
-          <td>${takeLists[0][i-1].std.name}</td>
+          <td>[@displayCourseTaker takeLists[0][i-1]/]</td>
           <td>${(gradeMap.get(takeLists[0][i-1].std).scoreText)!}</td>
 
           <td>${firstColSize+i}</td>
           <td>${takeLists[1][i-1].std.code}</td>
-          <td>${takeLists[1][i-1].std.name}</td>
+          <td>[@displayCourseTaker takeLists[1][i-1]/]</td>
           <td>${(gradeMap.get(takeLists[1][i-1].std).scoreText)!}</td>
 
           [#if takeLists[2][i-1]??]
           <td>${firstColSize*2+i}</td>
           <td>${takeLists[2][i-1].std.code}</td>
-          <td>${takeLists[2][i-1].std.name}</td>
+          <td>[@displayCourseTaker takeLists[2][i-1]/]</td>
           <td>${(gradeMap.get(takeLists[2][i-1].std).scoreText)!}</td>
           [#else]
           <td></td><td></td><td></td><td></td>

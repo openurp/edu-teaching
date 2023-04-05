@@ -42,7 +42,7 @@ class GuidanceAction extends TeacherSupport {
   var calculator: CourseGradeCalculator = _
 
   override def projectIndex(teacher: Teacher)(using project: Project): View = {
-    val semester = getSemester()
+    val semester = getSemester
     put("semester", semester)
 
     val courseTerms = getGuidanceCourses(project)
@@ -106,9 +106,9 @@ class GuidanceAction extends TeacherSupport {
   }
 
   def save(): View = {
-    val project = getProject()
-    val semester = getSemester()
-    val teacher = getTeacher()
+    val project = getProject
+    val semester = getSemester
+    val teacher = getTeacher
 
     val courses = getGuidanceCourses(project).keys
     if (courses.nonEmpty) {

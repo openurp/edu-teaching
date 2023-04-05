@@ -39,7 +39,7 @@ class CoursetableAction extends TeacherSupport {
   var clazzProvider: ClazzProvider = _
 
   override def projectIndex(teacher: Teacher)(using project: Project): View = {
-    val semester = getSemester()
+    val semester = getSemester
     put("weekdays", semester.calendar.weekdays)
     put("scheduleSetting", getSwitch(project, semester))
     put("semester", semester)

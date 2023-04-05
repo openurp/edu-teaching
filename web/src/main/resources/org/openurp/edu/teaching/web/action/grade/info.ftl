@@ -4,7 +4,7 @@
   bar.addBack();
 [/@]
 [#macro displayCourseTaker(taker)]
-  ${taker.std.name}[#if taker.takeType.id != 1]<sup>${taker.takeType.name}</sup>[/#if]
+  ${taker.std.name}[#if taker.takeType.id != 1]<sup style="color:red">${taker.takeType.name}</sup>[/#if]
 [/#macro]
 [#macro displayGrade(grade)]
   [#if grade?? && grade.id??]
@@ -76,7 +76,7 @@
         <tr>
           <td class="idx_td">${i}</td>
           <td>${takeLists[0][i-1].std.code}</td>
-          <td>${takeLists[0][i-1].std.name}</td>
+          <td>[@displayCourseTaker takeLists[0][i-1]/]</td>
           [@displayGrade gradeMap.get(takeLists[0][i-1].std)!/]
 
           <td class="idx_td">${firstColSize+i}</td>
@@ -87,7 +87,7 @@
           [#if takeLists[2][i-1]??]
           <td class="idx_td">${firstColSize*2+i}</td>
           <td>${takeLists[2][i-1].std.code}</td>
-          <td>${takeLists[2][i-1].std.name}</td>
+          <td>[@displayCourseTaker takeLists[2][i-1]/]</td>
           [@displayGrade gradeMap.get(takeLists[2][i-1].std)!/]
           [#else]
           <td class="idx_td"></td><td></td><td></td>[#list gradeTypes as g]<td></td>[/#list]
