@@ -25,7 +25,7 @@ import org.beangle.commons.lang.{ClassLoaders, Strings}
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.data.transfer.Format
 import org.beangle.data.transfer.excel.{ExcelTemplateExporter, ExcelTemplateWriter}
-import org.beangle.data.transfer.exporter.ExportSetting
+import org.beangle.data.transfer.exporter.ExportContext
 import org.beangle.ems.app.{Ems, EmsApp}
 import org.beangle.security.Securities
 import org.beangle.web.action.context.{ActionContext, Params}
@@ -207,13 +207,13 @@ class ClazzAction extends ActionSupport {
     val clazz = getClazz(teacher)
     val toSheet = getBoolean("excel", false)
     if (toSheet) {
-      val setting = new ExportSetting
-      val ctx = setting.context
+      val context = new ExportContext
       val response = ActionContext.current.response
-      ctx.format = Format.Xlsx
-      setting.exporter = new ExcelTemplateExporter()
-      setting.writer = new ExcelTemplateWriter(
-        ClassLoaders.getResource("org/openurp/edu/teaching/components/rollbook.xlsx").get, ctx, response.getOutputStream)
+      context.format = Format.Xlsx
+      context.exporter = new ExcelTemplateExporter()
+      context.writer = new ExcelTemplateWriter(
+        ClassLoaders.getResource("org/openurp/edu/teaching/components/rollbook.xlsx").get, context,
+        response.getOutputStream)
       RequestUtils.setContentDisposition(response, clazz.crn + "点名册.xlsx")
 
       val stds = clazz.enrollment.courseTakers.map(_.std).sortBy(_.code)
@@ -243,13 +243,13 @@ class ClazzAction extends ActionSupport {
       }
       creditText = Strings.replace(creditText, ".0", "")
 
-      setting.context.put("teacherName", clazz.teachers.map(_.name).mkString(","))
-      setting.context.put("clazz", clazz)
-      setting.context.put("stds", stds)
-      setting.context.put("creditText", creditText)
-      setting.context.put("directions", directions)
-      setting.context.put("tutors", tutors)
-      setting.exporter.exportData(ctx, setting.writer)
+      context.put("teacherName", clazz.teachers.map(_.name).mkString(","))
+      context.put("clazz", clazz)
+      context.put("stds", stds)
+      context.put("creditText", creditText)
+      context.put("directions", directions)
+      context.put("tutors", tutors)
+      context.exporter.exportData(context, context.writer)
       Status.Ok
     } else forward()
   }

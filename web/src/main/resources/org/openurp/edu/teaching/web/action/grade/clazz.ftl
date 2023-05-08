@@ -4,7 +4,7 @@
   bar.addBack();
 [/@]
 [#if (gradeInputSwitch.beginAt)??]
-<script language="JavaScript" type="text/JavaScript" src="${b.base}/static/scripts/edu/grade/gradeSeg.js"></script>
+<script language="JavaScript" type="text/JavaScript" src="${b.base}/static/edu/grade/gradeSeg.js"></script>
 <br/>
 <div class="container text-sm">
     [@b.messages slash="5"/]

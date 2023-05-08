@@ -43,7 +43,7 @@
           <td>[@displayCourseTaker takeLists[1][i-1]/]</td>
           <td>${(gradeMap.get(takeLists[1][i-1].std).scoreText)!}</td>
 
-          [#if takeLists[2][i-1]??]
+          [#if takeLists[2]?? && takeLists[2][i-1]??]
           <td>${firstColSize*2+i}</td>
           <td>${takeLists[2][i-1].std.code}</td>
           <td>[@displayCourseTaker takeLists[2][i-1]/]</td>
