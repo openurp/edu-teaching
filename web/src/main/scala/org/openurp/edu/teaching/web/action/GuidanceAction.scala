@@ -33,6 +33,7 @@ import org.openurp.edu.grade.service.CourseGradeCalculator
 import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.Instant
+import scala.collection.mutable
 
 /**
  * 导师指导学生的主课成绩录入
@@ -43,26 +44,31 @@ class GuidanceAction extends TeacherSupport {
 
   override def projectIndex(teacher: Teacher)(using project: Project): View = {
     val semester = getSemester
+    val teacher = getTeacher
     put("semester", semester)
+    put("teacher", teacher)
 
-    val courseTerms = getGuidanceCourses(project)
-    put("courses", courseTerms.keys.toSeq.sortBy(_.code))
-    if (courseTerms.nonEmpty) {
+
+    val groups = this.getGuidanceGroups(project)
+    val allCourses = groups.flatMap(_.courses)
+    put("groups", groups)
+    put("courses", allCourses)
+    if (groups.nonEmpty) {
       val stds = getStds(teacher, semester)
       val activeStds = Collections.newSet[Student]
-      val stdCourseTerms = Collections.newMap[String, Int]
+      val groupTerms = Collections.newMap[String, Int]
       val termCalculator = new TermCalculator(project, semester, entityDao)
-      for (std <- stds; course <- courseTerms.keys) {
+      for (std <- stds; group <- groups) {
         val term = termCalculator.getTerm(std.grade, true)
-        if (courseTerms(course).contains(term)) {
-          stdCourseTerms.put(s"${std.id}_${course.id}", term)
+        if (group.contains(term)) {
+          groupTerms.put(s"${std.id}_${group.name}", term)
           activeStds.add(std)
         }
       }
       put("stds", activeStds.toSeq.sortBy(x => x.grade.code + x.code))
-      put("stdCourseTerms", stdCourseTerms)
+      put("stdGroupTerms", groupTerms)
       if (stds.nonEmpty) {
-        val grades = getGrades(project, semester, courseTerms.keys, stds)
+        val grades = getGrades(project, semester, allCourses, stds)
         val rs = grades.groupBy(_.course).map {
           case (c, gs) => (c, gs.groupBy(_.std).map(x => (x._1, x._2.head)))
         }
@@ -82,24 +88,41 @@ class GuidanceAction extends TeacherSupport {
     entityDao.search(gradeQuery)
   }
 
-  private def getGuidanceCourses(project: Project): Map[Course, Terms] = {
-    val courseTerms = getProjectProperty("edu.course.guidance_course_terms", "2022101510473710477=1,2,3,4;2022101510481410498=5,6")(using project)
+  private def getGuidanceGroups(project: Project): Seq[GuidanceCourseGroup] = {
+    var courseTerms = getProjectProperty("edu.course.guidance_course_terms", "")(using project)
     if (Strings.isBlank(courseTerms)) {
-      Map.empty
+      List.empty
     } else {
-      val course2Term = Collections.newMap[Course, Terms]
-      Strings.split(courseTerms, ";") foreach { courseTerm =>
-        val data = Strings.split(courseTerm, "=")
-        val course = entityDao.get(classOf[Course], data(0).toLong)
-        val term = Terms(data(1))
-        course2Term.put(course, term)
+      courseTerms = Strings.substringBetween(courseTerms, "{", "}")
+      val groups = Collections.newBuffer[GuidanceCourseGroup]
+      Strings.split(courseTerms, ",") foreach { group =>
+        var name = Strings.substringBefore(group, ":")
+        name = Strings.replace(name, "'", "")
+        name = Strings.replace(name, "\"", "")
+        var termList = Strings.substringAfter(group, ":")
+        termList = Strings.replace(termList, "'", "")
+        termList = Strings.replace(termList, "\"", "")
+        val course2Term = Collections.newMap[Course, Terms]
+        Strings.split(termList, ";") foreach { courseTerm =>
+          val data = Strings.split(courseTerm, "=")
+          val course = entityDao.get(classOf[Course], data(0).toLong)
+          val term = Terms(data(1))
+          course2Term.put(course, term)
+        }
+        groups.addOne(new GuidanceCourseGroup(name, course2Term.toMap))
       }
-      course2Term.toMap
+      groups.toSeq
     }
   }
 
+  /** 按照导师或指导老师查找学生
+   *
+   * @param teacher
+   * @param semester
+   * @return
+   */
   private def getStds(teacher: Teacher, semester: Semester): Seq[Student] = {
-    val stdQuery = OqlBuilder.from(classOf[Student], "std").where("std.tutor=:me", teacher)
+    val stdQuery = OqlBuilder.from(classOf[Student], "std").where("std.tutor=:me or std.advisor=:me", teacher)
     stdQuery.where("std.beginOn < :endOn and :beginOn < std.endOn", semester.endOn, semester.beginOn)
     stdQuery.orderBy("std.state.grade.code,std.code")
     entityDao.search(stdQuery)
@@ -110,17 +133,18 @@ class GuidanceAction extends TeacherSupport {
     val semester = getSemester
     val teacher = getTeacher
 
-    val courses = getGuidanceCourses(project).keys
-    if (courses.nonEmpty) {
+    val groups = getGuidanceGroups(project)
+    val allCourses = groups.flatMap(_.courses)
+    if (allCourses.nonEmpty) {
       val stds = getStds(teacher, semester)
       if (stds.nonEmpty) {
-        val grades = getGrades(project, semester, courses, stds)
+        val grades = getGrades(project, semester, allCourses, stds)
         val gradeMap = grades.groupBy(_.course).map {
           case (c, gs) => (c, gs.groupBy(_.std).map(x => (x._1, x._2.head)))
         }
         val gradingMode = entityDao.get(classOf[GradingMode], GradingMode.Percent)
         val endGaType = entityDao.get(classOf[GradeType], GradeType.EndGa)
-        for (std <- stds; course <- courses) {
+        for (std <- stds; group <- groups; course <- group.courses if group.matched(std, teacher)) {
           getFloat(s"${std.id}_${course.id}.score") match {
             case Some(score) =>
               val grade = gradeMap.getOrElse(course, Map.empty).get(std) match {
@@ -165,6 +189,10 @@ class GuidanceAction extends TeacherSupport {
               if (get(s"${std.id}_${course.id}.score").nonEmpty) {
                 gradeMap.getOrElse(course, Map.empty).get(std) foreach { grade =>
                   val oldScore = grade.score.map(_.toString).getOrElse("")
+                  val gaGrade = grade.addGaGrade(endGaType, Grade.Status.Published)
+                  calculator.updateScore(gaGrade, None, grade.gradingMode)
+                  calculator.calcFinal(grade)
+                  entityDao.saveOrUpdate(grade)
                   val msg = s"删除了${std.code}的${course.name}成绩：$oldScore"
                   businessLogger.info(msg, grade.id, Map.empty)
                 }
@@ -174,5 +202,25 @@ class GuidanceAction extends TeacherSupport {
       }
     }
     redirect("index", s"semester.id=${semester.id}", "info.save.success")
+  }
+}
+
+class GuidanceCourseGroup(val name: String, val courseTerms: Map[Course, Terms]) {
+  def contains(term: Int): Boolean = {
+    courseTerms.exists { case (c, t) => t.contains(term) }
+  }
+
+  def getCourse(term: Int): Option[Course] = {
+    courseTerms.find { case (c, t) => t.contains(term) }.map(_._1)
+  }
+
+  def courses: Set[Course] = courseTerms.keySet
+
+  def matched(std: Student, teacher: Teacher): Boolean = {
+    if (name == "主课") {
+      std.tutor.contains(teacher)
+    } else {
+      std.tutor.contains(teacher) && std.advisor.isEmpty || std.advisor.contains(teacher)
+    }
   }
 }

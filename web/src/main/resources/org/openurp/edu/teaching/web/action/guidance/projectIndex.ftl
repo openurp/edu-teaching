@@ -27,13 +27,13 @@
 }
 </style>
 <div class="container-fluid">
-  [@b.toolbar title="${semester.schoolYear}学年度${semester.name}学期 主课成绩"/]
+  [@b.toolbar title="${semester.schoolYear}学年度${semester.name}学期 主课及学位论文指导成绩"/]
   [@b.messages slash="3"/]
   [@base.semester_bar value=semester! formName='courseTableForm'/]
 
   <div class="card card-info card-primary card-outline text-sm">
     <div class="card-header">
-      <h3 class="card-title">学生和课程
+      <h3 class="card-title">${teacher.name}的学生和课程
         <span class="badge badge-primary">${stds?size}</span>
       </h3>
       [@b.card_tools]
@@ -50,7 +50,7 @@
      <table class="table table-hover table-sm table-striped" style="text-align:center">
        <thead>
          <th>序号</th><th>年级</th><th>学号</th><th>姓名</th><th>专业</th><th>专业方向</th>
-         [#list courses as course]<th>${course.name}</th>[/#list]
+         [#list groups as group]<th>${group.name}</th>[/#list]
        </thead>
        <tbody>
        [#list stds as std]
@@ -61,11 +61,17 @@
            <td data-label="姓名">${std.name}</td>
            <td data-label="专业">${(std.state.major.name)!}</td>
            <td data-label="专业方向">${(std.state.direction.name)!}</td>
-           [#list courses as course]
-           <td data-label="${course.name}">
-             [#if stdCourseTerms["${std.id}_${course.id}"]??]
-             [#assign tabIndex=(std_index+1)+course_index*stds?size/]
-             <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}" placeholder="第${stdCourseTerms["${std.id}_${course.id}"]}学期成绩" tabIndex="${tabIndex}">
+           [#list groups as group]
+           <td data-label="${group.name}">
+             [#assign term=stdGroupTerms["${std.id}_${group.name}"]!0/]
+             [#if term>0]
+              [#if group.matched(std,teacher)]
+             [#assign course =group.getCourse(term?int)/]
+             [#assign tabIndex=(std_index+1)+group_index*stds?size/]
+             <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}" placeholder="第${term}学期 ${course.name}" tabIndex="${tabIndex}">
+              [#else]
+              [#if ((std.tutor.name)!'') != teacher.name]导师 ${(std.tutor.name)!}[/#if][#if ((std.advisor.name)!'') != teacher.name]论文导师 ${(std.advisor.name)!}[/#if]
+              [/#if]
              [/#if]
            </td>
            [/#list]
