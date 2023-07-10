@@ -59,18 +59,20 @@
 [/#macro]
 
 [#macro tableScripts(table,tableIndex)]
-<script language="JavaScript">
-  var table${tableIndex} = new CourseTable('${semester.beginOn?string("yyyy-MM-dd")}',[[#list table.timeSetting.units?sort_by('indexno') as u][${u.beginAt.value},${u.endAt.value}][#if u_has_next],[/#if][/#list]]);
-  var activity=null;
-  [#list table.activities as s]
-    [#if table.category=="squad"]
-      [#assign c=s.clazz.course]
-      activity = table${tableIndex}.newActivity("[@getListPropertyId s.teachers/]","[@getTeacherNames s.teachers/]","${c.id}(${(s.clazz.crn)!})","${c.name}(${(s.clazz.crn)!})","[@getListPropertyId s.rooms/]","[#if table.placePublished][@getListName s.rooms/][/#if]","${s.time.startOn?string('yyyy-MM-dd')}",${s.time.weekstate.value});
-    [#else]
-      activity = table${tableIndex}.newActivity("[@getListPropertyId s.teachers/]","[@getTeacherNames s.teachers/]","${s.clazz.course.id}(${(s.clazz.crn)!})","${s.clazz.course.name}(${(s.clazz.crn)!})","[@getListPropertyId s.rooms/]","[#if table.placePublished][@getListName s.rooms/][/#if]","${s.time.startOn?string('yyyy-MM-dd')}",${s.time.weekstate.value});
-    [/#if]
-    table${tableIndex}.addActivityByTime(activity,${s.time.weekday.id},${s.time.beginAt.value},${s.time.endAt.value});
-  [/#list]
-  table${tableIndex}.marshalTable().fillTable("${table.style}",${tableIndex});
-</script>
+[#if table.timePublished]
+    <script language="JavaScript">
+      var table${tableIndex} = new CourseTable('${semester.beginOn?string("yyyy-MM-dd")}',[[#list table.timeSetting.units?sort_by('indexno') as u][${u.beginAt.value},${u.endAt.value}][#if u_has_next],[/#if][/#list]]);
+      var activity=null;
+      [#list table.activities as s]
+        [#if table.category=="squad"]
+          [#assign c=s.clazz.course]
+          activity = table${tableIndex}.newActivity("[@getListPropertyId s.teachers/]","[@getTeacherNames s.teachers/]","${c.id}(${(s.clazz.crn)!})","${c.name}(${(s.clazz.crn)!})","[@getListPropertyId s.rooms/]","[#if table.placePublished][@getListName s.rooms/][/#if]","${s.time.startOn?string('yyyy-MM-dd')}",${s.time.weekstate.value});
+        [#else]
+          activity = table${tableIndex}.newActivity("[@getListPropertyId s.teachers/]","[@getTeacherNames s.teachers/]","${s.clazz.course.id}(${(s.clazz.crn)!})","${s.clazz.course.name}(${(s.clazz.crn)!})","[@getListPropertyId s.rooms/]","[#if table.placePublished][@getListName s.rooms/][/#if]","${s.time.startOn?string('yyyy-MM-dd')}",${s.time.weekstate.value});
+        [/#if]
+        table${tableIndex}.addActivityByTime(activity,${s.time.weekday.id},${s.time.beginAt.value},${s.time.endAt.value});
+      [/#list]
+      table${tableIndex}.marshalTable().fillTable("${table.style}",${tableIndex});
+    </script>
+[/#if]
 [/#macro]
