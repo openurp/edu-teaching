@@ -28,6 +28,7 @@ import org.beangle.data.transfer.excel.{ExcelTemplateExporter, ExcelTemplateWrit
 import org.beangle.data.transfer.exporter.ExportContext
 import org.beangle.ems.app.{Ems, EmsApp}
 import org.beangle.security.Securities
+import org.beangle.template.freemarker.ProfileTemplateLoader
 import org.beangle.web.action.context.{ActionContext, Params}
 import org.beangle.web.action.support.ActionSupport
 import org.beangle.web.action.view.{Status, View}
@@ -251,7 +252,10 @@ class ClazzAction extends ActionSupport {
       context.put("tutors", tutors)
       context.exporter.exportData(context, context.writer)
       Status.Ok
-    } else forward()
+    } else{
+      ProfileTemplateLoader.setProfile(clazz.project.id)
+      forward()
+    }
   }
 
   def bulletin(): View = {
@@ -306,7 +310,7 @@ class ClazzAction extends ActionSupport {
       tp.semester = clazz.semester
       tp.updatedAt = Instant.now
       val times = Collections.newSet[(LocalDate, HourMinute, HourMinute, Option[String])]
-      clazz.schedule.sessions foreach { s =>
+      clazz.schedule.activities foreach { s =>
         s.time.dates foreach { d =>
           times.addOne((d, s.time.beginAt, s.time.endAt, s.places))
         }

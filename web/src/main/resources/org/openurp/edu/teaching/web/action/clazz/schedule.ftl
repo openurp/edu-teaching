@@ -5,7 +5,7 @@
   [@b.card_body style="padding: 0px 20px;"]
   <strong><i class="fas fa-calendar mr-1"></i> 时间</strong>
   <p class="text-muted" style="line-break: anywhere;">
-  [#list clazz.schedule.sessions as s]
+  [#list clazz.schedule.activities as s]
     [#assign preYear="1"/]
     [#assign preYearMonth="1"/]
     [#list s.time.dates as date]
@@ -35,7 +35,7 @@
   <p class="text-muted">
     [#if setting.placePublished]
     [#assign rooms=[]/]
-    [#list clazz.schedule.sessions as s]
+    [#list clazz.schedule.activities as s]
       [#list s.rooms as r]
         [#if !rooms?seq_contains(r)][#assign rooms=rooms+[r]/][/#if]
       [/#list]

@@ -19,6 +19,7 @@ package org.openurp.edu.teaching.web.action
 
 import org.apache.poi.ss.formula.functions.WeekdayFunc
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.beangle.template.freemarker.ProfileTemplateLoader
 import org.beangle.web.action.view.View
 import org.openurp.base.edu.model.Teacher
 import org.openurp.base.edu.service.TimeSettingService
@@ -40,17 +41,24 @@ class CoursetableAction extends TeacherSupport {
 
   override def projectIndex(teacher: Teacher)(using project: Project): View = {
     val semester = getSemester
+    val setting = getSwitch(project, semester)
     put("weekdays", semester.calendar.weekdays)
-    put("scheduleSetting", getSwitch(project, semester))
     put("semester", semester)
 
-    val weektimes = WeekTimeBuilder.build(semester, "*")
     val table = new CourseTable(semester, teacher, "teacher")
+    table.placePublished = setting.placePublished
+    table.timePublished = setting.timePublished
+    val weektimes = WeekTimeBuilder.build(semester, "*")
     table.setClazzes(clazzProvider.getClazzes(semester, teacher, project), weektimes)
     table.timeSetting = timeSettingService.get(project, semester, None)
-    put("tableStyle", "WEEK_TABLE")
+    table.style = CourseTable.Style.WEEK_TABLE
+    if (getProjectProperty("edu.clazz.tablestyle", CourseTable.Style.UNIT_COLUMN.toString) == "UNIT_COLUMN") {
+      table.style = CourseTable.Style.UNIT_COLUMN
+    }
+    put("showClazzIndex",getProjectProperty("edu.clazz.show_index","false")=="true")
     put("teachingNatures", codeService.get(classOf[TeachingNature]))
     put("table", table)
+    ProfileTemplateLoader.setProfile(project.id)
     forward()
   }
 
@@ -60,7 +68,14 @@ class CoursetableAction extends TeacherSupport {
     query.where("setting.project = :project", project)
     query.where("setting.semester =:semester", semester)
     query.cacheable()
-    entityDao.search(query).headOption.getOrElse(new ScheduleSetting)
+    entityDao.search(query).headOption match {
+      case None =>
+        val ns = new ScheduleSetting
+        ns.placePublished = true
+        ns.timePublished = true
+        ns
+      case Some(s) => s
+    }
   }
 
 }

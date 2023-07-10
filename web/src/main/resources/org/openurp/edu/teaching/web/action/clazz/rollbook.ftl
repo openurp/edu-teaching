@@ -13,13 +13,15 @@
   </head>
 <body style="width:185mm; margin:auto;">
 <style>
+body{
+ width:210mm;
+ margin:auto;
+}
 .contentTableTitleTextStyle {
     color: #1F3D83;
-    font-size: 15pt;
     font-style: normal;
     font-weight: bold;
     letter-spacing: 0;
-    line-height: 16pt;
     text-decoration: none;
 }
 .listTable {
@@ -45,9 +47,6 @@
   word-wrap:break-word;
   padding:2px 0px;
 }
-.listTable tbody tr {
-  height:27px;
-}
 .listTable thead tr {
   background-color: #C7DBFF;
   color: #000000;
@@ -58,32 +57,36 @@
 [@b.toolbar title='点名册']
    bar.addItem("${b.text('action.print')}","print()");
 [/@]
-
-[#assign stdCountFirstPage = 30]
-[#assign stdCountPerPage = 35]
+[#assign stdCountFirstPage = 25]
+[#assign stdCountPerPage = 30]
 [#assign units = clazz.schedule.lastWeek - clazz.schedule.firstWeek + 1 /]
 [#assign stdIndex = 1 /]
 <table width="100%">
   <tr>
     <td align="center" colspan="3">
-      <label class="contentTableTitleTextStyle"><b>研究生课堂考勤登记表</b></label>
+      <label class="contentTableTitleTextStyle">课程点名册</label>
     </td>
   </tr>
 
   <tr>
     <td align="center" colspan="3">
-      <label class="contentTableTitleTextStyle"><B> （${clazz.semester.schoolYear}学年第${clazz.semester.name}学期）</B></label>
+      <label class="contentTableTitleTextStyle">${clazz.semester.schoolYear}学年第${clazz.semester.name}学期</label>
     </td>
   </tr>
   <tr class="infoTitle">
     <td>课程序号：${clazz.crn}</td>
-    <td>课程类别：${clazz.courseType.name}</td>
-    <td>课程名称：${clazz.courseName}</td>
+    <td>课程名称：${clazz.course.name}</td>
+    <td>授课教师：[#list clazz.teachers as teacher]${teacher.name}[#if teacher_has_next],[/#if][/#list]</td>
   </tr>
   <tr class="infoTitle">
-    <td>学时：${clazz.course.creditHours}</td>
-    <td>授课教师：[#list clazz.teachers as teacher]${teacher.name}[#if teacher_has_next],[/#if][/#list]</td>
-    <td>开课院系：${clazz.teachDepart.name}</td>
+    <td>说明：</td>
+    <td>
+      出勤&nbsp;&radic;&nbsp;&nbsp;
+      早退&nbsp;&Omicron;&nbsp;&nbsp;
+      旷课&nbsp;&Delta;&nbsp;&nbsp;
+      迟到&nbsp;&Phi;&nbsp;&nbsp;
+    </td>
+    <td>教师签名：[#list 1..10 as j]&nbsp;[/#list]________年____月____日</td>
   </tr>
 </table>
 
@@ -103,36 +106,40 @@
 
 [#list courseTakerChunks as subCourseTakers]
   <table width="100%" border="0" class="listTable">
-    <thead>
-      <tr align="center" class="darkColumn">
-        <td width="4%" rowspan="2">序号</td>
-        <td width="12%" rowspan="2">学号</td>
-        <td width="11%" rowspan="2">姓名</td>
-        <td width="22%" rowspan="2">专业方向</td>
-        <td width="11%" rowspan="2">导师姓名</td>
-        <td width="40%" colspan="${units}">考勤登记</td>
-      </tr>
-      <tr>
+    <colgroup span="5"/>
+    <colgroup>
+       [#list 1..units as i]<col style="width:${60.0/units}%"></col>[/#list]
+    </colgroup>
+    <tr align="center" class="darkColumn">
+      <td width="4%" rowspan="2">序号</td>
+      <td width="8%" rowspan="2">学号</td>
+      <td width="8%" rowspan="2">姓名</td>
+      <td width="4%" rowspan="2">性别</td>
+      <td width="16%" rowspan="2">班级</td>
+      <td width="60%" colspan="${units}">考勤登记</td>
+    </tr>
+    <tr align="center" class="darkColumn">
         [#list 1..units as i]
-          <td>&nbsp;</td>
+          <td>${i}</td>
         [/#list]
-      </tr>
-    </thead>
-    <tbody>
+    </tr>
     [#list subCourseTakers as taker]
       <tr align="center">
         <td>${stdIndex}</td>
-        <td  style="font-size:13px">${taker.std.code}</td>
-        <td>${taker.std.name}</td>
-        <td>${(taker.std.state.direction.name)!}</td>
-        <td>${(taker.std.tutor.name)!}</td>
+        <td style="font-size: 10px;">${taker.std.code}</td>
+        <td>${taker.std.name}
+        [#if taker.takeType.id!=1]<sup>${(taker.takeType.name)!}[#if taker.freeListening]免听[/#if]</sup>[/#if]
+        </td>
+        <td>${taker.std.gender.name}</td>
+        <td>
+          <span [#if ((taker.std.state.squad.name)!"")?length>13]style="font-size: 0.8rem;"[/#if]>${(taker.std.state.squad.name)!}</span>
+        </td>
         [#list 1..units as i]
         <td>&nbsp;</td>
         [/#list]
       </tr>
       [#assign stdIndex = stdIndex+1]
     [/#list]
-    </tbody>
   </table>
 
   [#if subCourseTakers_has_next]<div style='page-break-after:always'></div>[/#if]

@@ -1,10 +1,18 @@
 [#ftl]
-[@b.head/]
+<!DOCTYPE html>
+<html lang="zh_CN">
+  <head>
+    <title></title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    ${b.static.load(["jquery","beangle","bui"])}
+    <script>
+      beangle.staticBase="${b.static_base}/";
+    </script>
+  </head>
+<body style="width:185mm; margin:auto;">
 <style>
-body{
- width:210mm;
- margin:auto;
-}
 .contentTableTitleTextStyle {
     color: #1F3D83;
     font-size: 15pt;
@@ -37,6 +45,9 @@ body{
   word-wrap:break-word;
   padding:2px 0px;
 }
+.listTable tbody tr {
+  height:27px;
+}
 .listTable thead tr {
   background-color: #C7DBFF;
   color: #000000;
@@ -46,39 +57,33 @@ body{
 </style>
 [@b.toolbar title='点名册']
    bar.addItem("${b.text('action.print')}","print()");
-   bar.addClose("");
 [/@]
 
-[#assign stdCountFirstPage = 25]
-[#assign stdCountPerPage = 30]
+[#assign stdCountFirstPage = 30]
+[#assign stdCountPerPage = 35]
 [#assign units = clazz.schedule.lastWeek - clazz.schedule.firstWeek + 1 /]
 [#assign stdIndex = 1 /]
 <table width="100%">
   <tr>
     <td align="center" colspan="3">
-      <label class="contentTableTitleTextStyle"><b>点名册</b></label>
+      <label class="contentTableTitleTextStyle"><b>研究生课堂考勤登记表</b></label>
     </td>
   </tr>
 
   <tr>
     <td align="center" colspan="3">
-      <label class="contentTableTitleTextStyle"><B> ${clazz.semester.schoolYear}学年第${clazz.semester.name}学期</B></label>
+      <label class="contentTableTitleTextStyle"><B> （${clazz.semester.schoolYear}学年第${clazz.semester.name}学期）</B></label>
     </td>
   </tr>
   <tr class="infoTitle">
     <td>课程序号：${clazz.crn}</td>
-    <td>课程名称：${clazz.course.name}</td>
-    <td>授课教师：[#list clazz.teachers as teacher]${teacher.name}[#if teacher_has_next],[/#if][/#list]</td>
+    <td>课程类别：${clazz.courseType.name}</td>
+    <td>课程名称：${clazz.courseName}</td>
   </tr>
   <tr class="infoTitle">
-    <td>说明：</td>
-    <td>
-      出勤&nbsp;&radic;&nbsp;&nbsp;
-      早退&nbsp;&Omicron;&nbsp;&nbsp;
-      旷课&nbsp;&Delta;&nbsp;&nbsp;
-      迟到&nbsp;&Phi;&nbsp;&nbsp;
-    </td>
-    <td>教师签名：[#list 1..10 as j]&nbsp;[/#list]________年____月____日</td>
+    <td>学时：${clazz.course.creditHours}</td>
+    <td>授课教师：[#list clazz.teachers as teacher]${teacher.name}[#if teacher_has_next],[/#if][/#list]</td>
+    <td>开课院系：${clazz.teachDepart.name}</td>
   </tr>
 </table>
 
@@ -98,42 +103,36 @@ body{
 
 [#list courseTakerChunks as subCourseTakers]
   <table width="100%" border="0" class="listTable">
-    <tr align="center" class="darkColumn">
-      <td width="3%" rowspan="2">序号</td>
-      <td width="7%" rowspan="2">学号</td>
-      <td width="7%" rowspan="2">姓名</td>
-      <td width="3%" rowspan="2">姓名</td>
-      <td width="16%" rowspan="2">班级</td>
-      <td width="4%" rowspan="2">修读类别</td>
-    [#list 1..units as i]
-      <td width="${60/units}%">${i}</td>
-    [/#list]
-    </tr>
-    <tr>
+    <thead>
+      <tr align="center" class="darkColumn">
+        <td width="4%" rowspan="2">序号</td>
+        <td width="12%" rowspan="2">学号</td>
+        <td width="11%" rowspan="2">姓名</td>
+        <td width="22%" rowspan="2">专业方向</td>
+        <td width="11%" rowspan="2">导师姓名</td>
+        <td width="40%" colspan="${units}">考勤登记</td>
+      </tr>
+      <tr>
         [#list 1..units as i]
           <td>&nbsp;</td>
         [/#list]
-    </tr>
+      </tr>
+    </thead>
+    <tbody>
     [#list subCourseTakers as taker]
-      <tr  align="center">
+      <tr align="center">
         <td>${stdIndex}</td>
-        <td style="font-size: 10px;">${taker.std.code}</td>
+        <td  style="font-size:13px">${taker.std.code}</td>
         <td>${taker.std.name}</td>
-        <td>${taker.std.person.gender.name}</td>
-        <td>
-          [#if ((taker.std.state.squad.name)!"")?length>13]
-             <span style="font-size: 8px;">${(taker.std.state.squad.name)!}</span>
-          [#else]
-             <span style="font-size: 10px;">${(taker.std.state.squad.name)!}</span>
-          [/#if]
-        </td>
-        <td>${(taker.takeType.name)!}[#if taker.freeListening]免听[/#if][#t/]</td>
+        <td>${(taker.std.state.direction.name)!}</td>
+        <td>${(taker.std.tutor.name)!}</td>
         [#list 1..units as i]
         <td>&nbsp;</td>
         [/#list]
       </tr>
       [#assign stdIndex = stdIndex+1]
     [/#list]
+    </tbody>
   </table>
 
   [#if subCourseTakers_has_next]<div style='page-break-after:always'></div>[/#if]

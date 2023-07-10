@@ -595,10 +595,10 @@ function CourseTable(beginOn, courseUnits) {
             for (var j = 0; j < units - 1; j++) {
                 var index = units * i + j;
                 var preTd = document.getElementById("TD" + index + "_"  + tableIndex);
-                var nextTd = document.getElementById("TD" + (index + units) + "_"  + tableIndex);
+                var nextTd = document.getElementById("TD" + (index + 1) + "_"  + tableIndex);
                 while (this.marshalContents[index] != null
-                        && this.marshalContents[index + units] != null
-                        && this.marshalContents[index] == this.marshalContents[index + units]) {
+                        && this.marshalContents[index + 1] != null
+                        && this.marshalContents[index] == this.marshalContents[index + 1]) {
                     preTd.parentNode.removeChild(nextTd);
                     var spanNumber = new Number(preTd.colSpan);
                     spanNumber++;
@@ -607,8 +607,8 @@ function CourseTable(beginOn, courseUnits) {
                     if (j >= units - 1) {
                         break;
                     }
-                    index = index + units;
-                    nextTd = document.getElementById("TD" + (index + units) + "_"  + tableIndex);
+                    index = index + 1;
+                    nextTd = document.getElementById("TD" + (index + 1) + "_"  + tableIndex);
                 }
             }
         }

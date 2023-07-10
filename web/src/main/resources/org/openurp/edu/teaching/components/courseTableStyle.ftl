@@ -1,5 +1,7 @@
 [#ftl]
-
+[#macro tableLegend]
+  <p class="text-sm text-muted" style="margin:0px">说明:课表中显示"张某某 法律基础(0678)(5-17,2201)" 表示授课教师:张某某,课程名称:法律基础,课程序号:0678,上课起止周:第5周到第17周,上课教室:2201</p>
+[/#macro]
 [#assign weekNames = ['--','星期一','星期二','星期三','星期四','星期五','星期六','星期日'] /]
 [#macro getListPropertyId(beanList)][#list beanList as bean][#if bean_index>0],[/#if]${(bean.id)!}[/#list][/#macro]
 [#macro initCourseTable(table,tableIndex)]
@@ -10,7 +12,7 @@
         <tr>
           <th style="background-color:#DEEDF7;" height="10px" width="110px">节次/星期</th>
           [#list table.weekdays as wd]
-          <th style="background-color:#DEEDF7;"><font size="2px">${weekNames[wd.id]}</font></th>
+          <th style="background-color:#DEEDF7;font-weight:normal;"><font size="2px">${weekNames[wd.id]}</font></th>
           [/#list]
         </tr>
       </thead>
@@ -32,12 +34,12 @@
          <tr height="10px">
           <th style="background-color: #DEEDF7;width:80px" rowspan="2">星期/节次</th>
           [#list table.timeSetting.units?sort_by("indexno") as unit]
-          <th style="background-color:${unit.part.color}">${unit.beginAt}-${unit.endAt}</th>
+          <th style="background-color:${unit.part.color};font-weight:normal;">${unit.beginAt}-${unit.endAt}</th>
           [/#list]
          </tr>
          <tr style="background-color: #DEEDF7;">
           [#list table.timeSetting.units?sort_by("indexno") as unit]
-          <th>${unit.name}</th>
+          <th style="font-weight:normal;">${unit.name}</th>
           [/#list]
          </tr>
         </thead>
@@ -53,13 +55,14 @@
     [@tableScripts table,tableIndex/]
   </div>
   [/#if]
+  [@tableLegend/]
 [/#macro]
 
 [#macro tableScripts(table,tableIndex)]
 <script language="JavaScript">
   var table${tableIndex} = new CourseTable('${semester.beginOn?string("yyyy-MM-dd")}',[[#list table.timeSetting.units?sort_by('indexno') as u][${u.beginAt.value},${u.endAt.value}][#if u_has_next],[/#if][/#list]]);
   var activity=null;
-  [#list table.sessions as s]
+  [#list table.activities as s]
     [#if table.category=="squad"]
       [#assign c=s.clazz.course]
       activity = table${tableIndex}.newActivity("[@getListPropertyId s.teachers/]","[@getTeacherNames s.teachers/]","${c.id}(${(s.clazz.crn)!})","${c.name}(${(s.clazz.crn)!})","[@getListPropertyId s.rooms/]","[#if table.placePublished][@getListName s.rooms/][/#if]","${s.time.startOn?string('yyyy-MM-dd')}",${s.time.weekstate.value});
