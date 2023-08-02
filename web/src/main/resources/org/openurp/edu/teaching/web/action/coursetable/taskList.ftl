@@ -14,8 +14,8 @@
         [@b.col property="courseType.name" title="课程类别" width="12%"]
           <span style="font-size:0.8em">${clazz.courseType.name}</span>
         [/@]
-        [@b.col property="name" title="教学班"/]
-        [@b.col property="name" title="周数" width="5%"]
+        [@b.col property="clazzName" title="教学班"/]
+        [@b.col title="周数" width="5%"]
           ${(clazz.schedule.firstWeek)!}~${(clazz.schedule.lastWeek)!}
         [/@]
         [@b.col title="第一次上课" width="10%"]
@@ -32,8 +32,8 @@
           [#list rooms as r]${r}[#sep],[/#list]
           [/#if]
         [/@]
-        [@b.col property="enrollment.actual" title="上课人数" width="5%"]
-          [@b.a href="clazz!rollbook?clazz.id="+clazz.id target="_blank"]${clazz.enrollment.actual?default(0)}[/@]
+        [@b.col property="enrollment.stdCount" title="上课人数" width="5%"]
+          [@b.a href="clazz!rollbook?clazz.id="+clazz.id target="_blank"]${clazz.enrollment.stdCount?default(0)}[/@]
         [/@]
         [@b.col title="备注" width="6%"]
           [#if clazz.enrollment.genderRatio.value != 0 ]

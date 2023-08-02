@@ -23,7 +23,7 @@
         <td class="title">记录方式:</td>
         <td class="content">[#if gradeState?exists]${gradeState.gradingMode.name}[/#if]</td>
         <td class="title">考核方式:</td>
-        <td class="content">${(clazz.exam.examMode.name)!}</td>
+        <td class="content">${(clazz.examMode.name)!}</td>
       </tr>
       [#if gradeState??]
      <tr>

@@ -189,7 +189,7 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
     for (gg <- grade.gaGrades) {
       if (gradeTypes.toSeq.contains(gg.gradeType)) if (gg.status < status) gg.status = status
     }
-    if (null != clazz.exam && null != clazz.exam.examMode) grade.examMode = clazz.exam.examMode
+    if (null != clazz.examMode) grade.examMode = clazz.examMode
     if (grade.status < status) grade.status = status
     grade
   }

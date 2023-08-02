@@ -80,8 +80,8 @@ table.reportFoot.tr {
         </tr>
         <tr>
             <td colspan="2">班级名称:
-            [#assign len = (report.clazz.name)?length/]
-            [#assign squadName = report.clazz.name!/]
+            [#assign len = (report.clazz.clazzName)?length/]
+            [#assign squadName = report.clazz.clazzName!/]
             [#assign max = 28/]
             [#if len>max]
               [#list 0..(len/max-1) as i]
@@ -94,7 +94,7 @@ table.reportFoot.tr {
               ${squadName}
             [/#if]
             </td>
-            <td>考核方式:${report.clazz.exam.examMode.name}</td>
+            <td>考核方式:${report.clazz.examMode.name}</td>
             <td align="left">人数:${(report.grades?size)!0}</td>
         </tr>
         <tr>
@@ -137,8 +137,8 @@ table.reportFoot.tr {
         </tr>
         <tr>
             <td>班级名称:
-            [#assign len = (report.clazz.name)?length/]
-            [#assign squadName = report.clazz.name!/]
+            [#assign len = (report.clazz.clazzName)?length/]
+            [#assign squadName = report.clazz.clazzName!/]
             [#assign max = 28/]
             [#if len>max]
               [#list 0..(len/max-1) as i]
@@ -152,7 +152,7 @@ table.reportFoot.tr {
             [/#if]
             </td>
             <td>课程序号:${report.clazz.crn}</td>
-            <td>考核方式:${(report.clazz.exam.examMode.name)!}</td>
+            <td>考核方式:${(report.clazz.examMode.name)!}</td>
             <td align="left">人数:${(report.grades?size)!0}</td>
         </tr>
         <tr>
