@@ -14,7 +14,10 @@
         [@b.col property="courseType.name" title="课程类别" width="12%"]
           <span style="font-size:0.8em">${clazz.courseType.name}</span>
         [/@]
-        [@b.col property="clazzName" title="教学班"/]
+        [@b.col property="clazzName" title="教学班"]
+          <span style="font-size:0.8em">${clazz.clazzName}
+          </span>
+        [/@]
         [@b.col title="周数" width="5%"]
           ${(clazz.schedule.firstWeek)!}~${(clazz.schedule.lastWeek)!}
         [/@]

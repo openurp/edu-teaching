@@ -11,21 +11,18 @@
       beangle.staticBase="${b.static_base}/";
     </script>
   </head>
-<body style="width:185mm; margin:auto;">
+<body style="margin:auto;">
 <style>
 body{
- width:210mm;
  margin:auto;
 }
 .contentTableTitleTextStyle {
-    color: #1F3D83;
-    font-style: normal;
-    font-weight: bold;
-    letter-spacing: 0;
-    text-decoration: none;
+    font-weight:bold;
+    font-size:18pt;
+    font-family:宋体
 }
 .listTable {
-    border: 1px solid #006CB2;
+    border: 0.5px solid #006CB2;
     border-collapse: collapse;
     font-size: 14px;
     font-style: normal;
@@ -41,7 +38,7 @@ body{
     font-size: 14px;
 }
 .listTable td {
-  border: 1px solid #006CB2;
+  border: 0.5px solid #006CB2;
   border-collapse: collapse;
   overflow: hidden;
   word-wrap:break-word;
@@ -57,36 +54,21 @@ body{
 [@b.toolbar title='点名册']
    bar.addItem("${b.text('action.print')}","print()");
 [/@]
-[#assign stdCountFirstPage = 25]
-[#assign stdCountPerPage = 30]
+[#assign stdCountFirstPage = 30]
+[#assign stdCountPerPage = 35]
 [#assign units = clazz.schedule.lastWeek - clazz.schedule.firstWeek + 1 /]
 [#assign stdIndex = 1 /]
 <table width="100%">
-  <tr>
-    <td align="center" colspan="3">
-      <label class="contentTableTitleTextStyle">课程点名册</label>
-    </td>
-  </tr>
+  <tr><td align="center"><label class="contentTableTitleTextStyle">${clazz.project.school.name}课程点名册</label></td></tr>
+  <tr><td align="center"><label class="contentTableTitleTextStyle" style="font-size:14pt;">${clazz.semester.schoolYear}学年第${clazz.semester.name}学期</label></td></tr>
+</table>
 
-  <tr>
-    <td align="center" colspan="3">
-      <label class="contentTableTitleTextStyle">${clazz.semester.schoolYear}学年第${clazz.semester.name}学期</label>
-    </td>
-  </tr>
+<table width="100%">
   <tr class="infoTitle">
     <td>课程序号：${clazz.crn}</td>
     <td>课程名称：${clazz.course.name}</td>
     <td>授课教师：[#list clazz.teachers as teacher]${teacher.name}[#if teacher_has_next],[/#if][/#list]</td>
-  </tr>
-  <tr class="infoTitle">
-    <td>说明：</td>
-    <td>
-      出勤&nbsp;&radic;&nbsp;&nbsp;
-      早退&nbsp;&Omicron;&nbsp;&nbsp;
-      旷课&nbsp;&Delta;&nbsp;&nbsp;
-      迟到&nbsp;&Phi;&nbsp;&nbsp;
-    </td>
-    <td>教师签名：[#list 1..10 as j]&nbsp;[/#list]________年____月____日</td>
+    <td>课程安排：${schedule!}</td>
   </tr>
 </table>
 
@@ -132,7 +114,7 @@ body{
         </td>
         <td>${taker.std.gender.name}</td>
         <td>
-          <span [#if ((taker.std.state.squad.name)!"")?length>13]style="font-size: 0.8rem;"[/#if]>${(taker.std.state.squad.name)!}</span>
+          <div class="text-ellipsis" style="max-width:100px">${(taker.std.state.squad.name)!}</div>
         </td>
         [#list 1..units as i]
         <td>&nbsp;</td>
@@ -141,7 +123,17 @@ body{
       [#assign stdIndex = stdIndex+1]
     [/#list]
   </table>
-
+  <table style="width:100%">
+    <tr class="infoTitle">
+      <td>说明：
+        出勤&nbsp;&radic;&nbsp;&nbsp;
+        早退&nbsp;&Omicron;&nbsp;&nbsp;
+        旷课&nbsp;&Delta;&nbsp;&nbsp;
+        迟到&nbsp;&Phi;&nbsp;&nbsp;
+      </td>
+      <td style="text-align:right;">教师签名：[#list 1..20 as j]&nbsp;[/#list]________年____月____日</td>
+    </tr>
+  </table>
   [#if subCourseTakers_has_next]<div style='page-break-after:always'></div>[/#if]
 [/#list]
 [@b.foot/]

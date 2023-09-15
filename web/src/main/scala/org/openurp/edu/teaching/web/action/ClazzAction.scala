@@ -35,7 +35,7 @@ import org.beangle.web.action.view.{Status, View}
 import org.beangle.web.servlet.util.RequestUtils
 import org.beangle.webmvc.support.helper.PopulateHelper
 import org.openurp.base.Features
-import org.openurp.base.edu.model.{Course, Teacher}
+import org.openurp.base.edu.model.Teacher
 import org.openurp.base.model.User
 import org.openurp.base.service.ProjectPropertyService
 import org.openurp.base.std.model.Student
@@ -44,6 +44,7 @@ import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.*
 import org.openurp.edu.clazz.service.ClazzMaterialService
+import org.openurp.edu.schedule.service.ScheduleDigestor
 
 import java.io.InputStream
 import java.time.{Instant, LocalDate}
@@ -252,7 +253,8 @@ class ClazzAction extends ActionSupport {
       context.put("tutors", tutors)
       context.exporter.exportData(context, context.writer)
       Status.Ok
-    } else{
+    } else {
+      put("schedule", ScheduleDigestor.digest(clazz, ":day :units :weeks :room"))
       ProfileTemplateLoader.setProfile(clazz.project.id)
       forward()
     }
