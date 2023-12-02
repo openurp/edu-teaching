@@ -5,7 +5,6 @@
 [@reportStyle/]
 [@b.toolbar title="教学班总评成绩打印"]
    bar.addPrint();
-   bar.addClose();
 [/@]
 [#list reports as report]
   [#if report.gradeState??]
@@ -18,7 +17,7 @@
     [#list report.grades as courseGrade]
       [#assign examGrade=courseGrade.getGrade(END)!"null"/]
       [#if examGrade!="null" && (examGrade.examStatus.id!0)=1]
-        [#assign totalNormal=totalNormal + 1 /] [#assign totalNormalScore=totalNormalScore+(examGrade.courseGrade.getGrade(GA).score)!0/]
+        [#assign totalNormal=totalNormal + 1 /] [#assign totalNormalScore=totalNormalScore+(examGrade.courseGrade.getGrade(EndGa).score)!0/]
       [/#if]
     [/#list]
     <table align="center" class="reportBody" width="95%">

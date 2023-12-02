@@ -34,10 +34,9 @@ import org.beangle.web.action.support.ActionSupport
 import org.beangle.web.action.view.{Status, View}
 import org.beangle.web.servlet.util.RequestUtils
 import org.beangle.webmvc.support.helper.PopulateHelper
-import org.openurp.base.Features
 import org.openurp.base.edu.model.Teacher
 import org.openurp.base.model.User
-import org.openurp.base.service.ProjectPropertyService
+import org.openurp.base.service.{Features, ProjectConfigService}
 import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.{TeachingMethod, TeachingNature}
 import org.openurp.edu.clazz.config.ScheduleSetting
@@ -58,7 +57,7 @@ class ClazzAction extends ActionSupport {
 
   var clazzProvider: ClazzProvider = _
 
-  var projectPropertyService: ProjectPropertyService = _
+  var configService: ProjectConfigService = _
 
   var clazzMaterialService: ClazzMaterialService = _
 
@@ -75,12 +74,12 @@ class ClazzAction extends ActionSupport {
     val avatarUrls = clazz.teachers.map(x => (x.id, Ems.api + "/platform/user/avatars/" + Digests.md5Hex(x.code) + ".jpg")).toMap
     put("avatarUrls", avatarUrls)
     put("clazzes", clazzProvider.getClazzes(clazz.semester, teacher, clazz.project))
-    put("tutorSupported", projectPropertyService.get(clazz.project, Features.StdInfoTutorSupported, false))
+    put("tutorSupported", configService.get(clazz.project, Features.StdInfoTutorSupported))
     forward()
   }
 
   private def getClazz(teacher: Teacher): Clazz = {
-    val clazz = entityDao.get(classOf[Clazz], getLong("clazz.id").getOrElse(0))
+    val clazz = entityDao.get(classOf[Clazz], getLongId("clazz"))
     if (null != clazz && clazz.teachers.contains(teacher)) {
       put("clazz", clazz)
     }
@@ -311,21 +310,27 @@ class ClazzAction extends ActionSupport {
       tp.docLocale = Locale.SIMPLIFIED_CHINESE
       tp.semester = clazz.semester
       tp.updatedAt = Instant.now
-      val times = Collections.newSet[(LocalDate, HourMinute, HourMinute, Option[String])]
+      var times = Collections.newBuffer[LessonTime]
       clazz.schedule.activities foreach { s =>
-        s.time.dates foreach { d =>
-          times.addOne((d, s.time.beginAt, s.time.endAt, s.places))
-        }
+        s.time.dates foreach { d => times.addOne(new LessonTime(d, s)) }
+      }
+      val grouped = times.groupBy(_.openOn)
+      val mergedTimes = Collections.newBuffer[LessonTime]
+      grouped foreach { case (d, tl) =>
+        val head = tl.head
+        tl.tail foreach { t => head.merge(t) }
+        mergedTimes.addOne(head)
       }
       var i = 1
-      times.toSeq.sortBy(x => x._1) foreach { time =>
+      times = mergedTimes.sorted
+      times foreach { time =>
         val lesson = new Lesson()
-        lesson.openOn = time._1
-        lesson.beginAt = time._2
-        lesson.endAt = time._3
-        lesson.places = time._4
+        lesson.openOn = time.openOn
+        lesson.beginAt = time.beginAt
+        lesson.endAt = time.endAt
+        lesson.places = time.places
         lesson.plan = tp
-        lesson.units = "x"
+        lesson.units = time.units.toBuffer.sorted.mkString(",")
         lesson.idx = i
         i += 1
         lesson.teachingNature = entityDao.get(classOf[TeachingNature], TeachingNature.Theory)
@@ -339,6 +344,33 @@ class ClazzAction extends ActionSupport {
     }
     put("plan", tp)
     forward()
+  }
+
+  class LessonTime extends Ordered[LessonTime] {
+    var openOn: LocalDate = _
+    var beginAt: HourMinute = _
+    var endAt: HourMinute = _
+    var places: Option[String] = None
+    var units = new mutable.HashSet[Int]
+
+    override def compare(that: LessonTime): Int = {
+      (this.openOn.toString + this.beginAt.toString).compareTo(that.openOn.toString + that.beginAt.toString)
+    }
+
+    def this(d: LocalDate, ca: ClazzActivity) = {
+      this()
+      this.openOn = d
+      this.beginAt = ca.time.beginAt
+      this.endAt = ca.time.endAt
+      this.places = ca.places
+      (ca.beginUnit.toInt to ca.endUnit.toInt) foreach { u => units.addOne(u) }
+    }
+
+    def merge(that: LessonTime): Unit = {
+      if this.beginAt > that.beginAt then this.beginAt = that.beginAt
+      if this.endAt < that.endAt then this.endAt = that.endAt
+      this.units ++= that.units
+    }
   }
 
   def saveTeachingPlan(): View = {

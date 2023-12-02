@@ -37,14 +37,16 @@
      </tr>
      [/#if]
     </table>
-    <table class="gridtable" style="border:1px solid">
+    <table class="grid-table">
+      <thead class="grid-head">
         <tr align="center" style="backGround-color:#C7DBFF">
-          <td width="20%">成绩类型</td>
-          <td width="15%">记录方式</td>
-          <td width="10%">百分比</td>
-          <td width="10%">状态</td>
-          <td width="45%">上次录入</td>
+          <th width="20%">成绩类型</th>
+          <th width="15%">记录方式</th>
+          <th width="10%">百分比</th>
+          <th width="10%">状态</th>
+          <th width="45%">上次录入</th>
         </tr>
+      </thead>
        [#if gradeState?exists]
           [#list gradeState.examStates?sort_by(["gradeType","code"])  as state]
           <tr align="center">

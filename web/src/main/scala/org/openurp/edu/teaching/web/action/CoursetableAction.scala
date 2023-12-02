@@ -17,19 +17,16 @@
 
 package org.openurp.edu.teaching.web.action
 
-import org.apache.poi.ss.formula.functions.WeekdayFunc
-import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.beangle.data.dao.OqlBuilder
 import org.beangle.template.freemarker.ProfileTemplateLoader
 import org.beangle.web.action.view.View
 import org.openurp.base.edu.model.Teacher
 import org.openurp.base.edu.service.TimeSettingService
 import org.openurp.base.model.{Project, Semester}
-import org.openurp.base.service.SemesterService
 import org.openurp.code.edu.model.TeachingNature
-import org.openurp.code.service.CodeService
+import org.openurp.edu.service.Features
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.{ClazzProvider, WeekTimeBuilder}
-import org.openurp.edu.clazz.model.Clazz
 import org.openurp.edu.schedule.service.CourseTable
 import org.openurp.starter.web.support.TeacherSupport
 
@@ -52,10 +49,10 @@ class CoursetableAction extends TeacherSupport {
     table.setClazzes(clazzProvider.getClazzes(semester, teacher, project), weektimes)
     table.timeSetting = timeSettingService.get(project, semester, None)
     table.style = CourseTable.Style.WEEK_TABLE
-    if (getProjectProperty("edu.clazz.tablestyle", CourseTable.Style.UNIT_COLUMN.toString) == "UNIT_COLUMN") {
+    if (getConfig(Features.ClazzTableStyle) == "UNIT_COLUMN") {
       table.style = CourseTable.Style.UNIT_COLUMN
     }
-    put("showClazzIndex",getProjectProperty("edu.clazz.show_index","false")=="true")
+    put("showClazzIndex", getConfig(Features.ClazzIndexSupported))
     put("teachingNatures", codeService.get(classOf[TeachingNature]))
     put("table", table)
     ProfileTemplateLoader.setProfile(project.id)

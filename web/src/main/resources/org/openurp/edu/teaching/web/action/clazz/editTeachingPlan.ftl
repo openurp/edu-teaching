@@ -15,7 +15,7 @@
           [@b.field label="#"+(lesson_index+1)+" "+ lesson.openOn?string('MM-dd')]
             <input class="lesson_contents" name="lesson${lesson.id}.places" value="${lesson.places!}" placeholder="腾讯会议、网课链接" style="width:70%"/>
             [#if lesson.contents==' '][#assign contents=""/][#else][#assign contents=lesson.contents/][/#if]
-            <input name="lesson${lesson.id}.contents" value="${contents}" placeholder="上课内容、主题" style="width:100%">
+            <textarea name="lesson${lesson.id}.contents" placeholder="上课内容、主题" style="width:100%">${contents}</textarea>
           [/@]
         [/#list]
         [@b.submit value="保存"/]

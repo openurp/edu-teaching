@@ -90,7 +90,7 @@
       [#list stds as std]
       if(form['${std.id}_${course.id}.score']){
         onReturn.add('${std.id}_${course.id}.score');
-}
+      }
       [/#list]
       [/#list]
       form.onkeypress=function(){onReturn.focus(event);}

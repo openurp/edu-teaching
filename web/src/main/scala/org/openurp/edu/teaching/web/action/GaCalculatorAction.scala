@@ -27,7 +27,10 @@ import org.openurp.code.service.CodeService
 import org.openurp.edu.grade.model.{CourseGrade, CourseGradeState, ExamGrade, GaGrade}
 import org.openurp.edu.grade.service.{CourseGradeCalculator, GradeRateService}
 
-class GradeCalculatorAction extends ActionSupport, EntityAction[CourseGrade] {
+/**
+ * 教师录入成绩需要的计算GA的方法
+ */
+class GaCalculatorAction extends ActionSupport, EntityAction[CourseGrade] {
   var entityDao: EntityDao = _
 
   var calculator: CourseGradeCalculator = _

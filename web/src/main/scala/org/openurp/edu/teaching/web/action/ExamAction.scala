@@ -17,17 +17,16 @@
 
 package org.openurp.edu.teaching.web.action
 
-import org.beangle.cdi.bind.BindModule
+import org.beangle.web.action.view.View
+import org.openurp.base.edu.model.Teacher
+import org.openurp.base.model.Project
+import org.openurp.starter.web.support.TeacherSupport
 
-class DefaultModule extends BindModule {
+/** 教师查看排考结果
+ */
+class ExamAction extends TeacherSupport {
 
-  override def binding(): Unit = {
-    bind(classOf[CoursetableAction])
-    bind(classOf[ClazzAction])
-
-    bind(classOf[GradeAction])
-    bind(classOf[ExamAction])
-    bind(classOf[GuidanceAction])
-    bind(classOf[GaCalculatorAction])
+  protected override def projectIndex(teacher: Teacher)(using project: Project): View = {
+    forward()
   }
 }

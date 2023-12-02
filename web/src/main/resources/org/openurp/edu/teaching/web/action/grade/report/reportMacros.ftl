@@ -114,7 +114,7 @@ table.reportFoot.tr {
       <td width="20%">统计人数:${totalNormal!0}</td>
       <td width="25%">总评平均成绩:[#if totalNormal>0]${totalNormalScore/totalNormal}[/#if]</td>
       <td width="25%">教师签名:</td>
-      <td width="30%">成绩录入日期:${(report.gradeState.getState(GA).updatedAt?string('yyyy-MM-dd'))!}</td>
+      <td width="30%">成绩录入日期:${(report.gradeState.getState(EndGa).updatedAt?string('yyyy-MM-dd'))!}</td>
     </tr>
   </table>
 [/#macro]
@@ -245,7 +245,7 @@ table.reportFoot.tr {
      [/#list]
      <td>
      [#list courseGrade.gaGrades as ga]
-        [#if ga.gradeType.id!=GA.id]
+        [#if ga.gradeType.id!=EndGa.id]
           ${ga.scoreText!}
         [/#if]
       [/#list]
@@ -262,3 +262,5 @@ table.reportFoot.tr {
     <td></td>
 [/#if]
 [/#macro]
+
+[#include "reportMacroExt.ftl"/]

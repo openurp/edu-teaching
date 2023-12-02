@@ -27,9 +27,6 @@ import java.io.File
 import java.nio.file.Files
 
 object ClazzGradeReport {
-  def main(args: Array[String]): Unit = {
-    return Files.newInputStream(new File("e:\\a%23b\\aa.txt").toPath)
-  }
   def build(gradeState: CourseGradeState, courseGrades: Seq[CourseGrade], isEndGa: Boolean, setting: CourseGradeSetting, pageSize: Int): Seq[ClazzGradeReport] = {
     if (isEndGa) {
       val grades = courseGrades.sortBy(_.std.code)

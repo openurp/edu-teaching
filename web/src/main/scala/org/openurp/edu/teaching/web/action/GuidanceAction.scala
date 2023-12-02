@@ -48,7 +48,6 @@ class GuidanceAction extends TeacherSupport {
     put("semester", semester)
     put("teacher", teacher)
 
-
     val groups = this.getGuidanceGroups(project)
     val allCourses = groups.flatMap(_.courses)
     put("groups", groups)
@@ -89,7 +88,7 @@ class GuidanceAction extends TeacherSupport {
   }
 
   private def getGuidanceGroups(project: Project): Seq[GuidanceCourseGroup] = {
-    var courseTerms = getProjectProperty("edu.course.guidance_course_terms", "")(using project)
+    var courseTerms = getConfig("edu.course.guidance_course_terms", "")(using project)
     if (Strings.isBlank(courseTerms)) {
       List.empty
     } else {

@@ -1,0 +1,2 @@
+[#ftl]
+[#include "inputGa.ftl"/]

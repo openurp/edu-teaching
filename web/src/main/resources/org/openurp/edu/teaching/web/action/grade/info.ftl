@@ -1,8 +1,5 @@
 [#ftl]
 [@b.head/]
-[@b.toolbar title="教学班成绩"]
-  bar.addBack();
-[/@]
 [#macro displayCourseTaker(taker)]
   ${taker.std.name}[#if taker.takeType.id != 1]<sup style="color:red">${taker.takeType.name}</sup>[/#if]
 [/#macro]
@@ -29,15 +26,18 @@
     width:40px;
   }
 </style>
-<div class="container-fluid text-sm">
+<div class="container-fluid">
+  [@b.toolbar title="教学班成绩"]
+    bar.addClose();
+  [/@]
   [@b.card_header]
     <h3 class="card-title">
       <i class="fa-solid fa-list mr-1"></i> ${clazz.crn} ${clazz.course.name} 学生成绩
       <span class="badge badge-success">${clazz.enrollment.courseTakers?size}</span>
     </h3>
     [@b.card_tools]
-      [#if gradeState?? && gradeState.isStatus(GA,1?int)]
-      [@b.a href="grade!reportGa?clazzId="+clazz.id target="_blank" class="btn btn-sm  btn-success"]<i class="fa-solid fa-print"></i> 打印[/@]
+      [#if gradeState?? && gradeState.isStatus(EndGa,1?int)]
+      [@b.a href="grade!report?clazzId="+clazz.id target="_blank" class="btn btn-sm btn-outline-primary"]<i class="fa-solid fa-print"></i> 打印[/@]
       [/#if]
     [/@]
   [/@]

@@ -6,8 +6,7 @@
 [#macro getListPropertyId(beanList)][#list beanList as bean][#if bean_index>0],[/#if]${(bean.id)!}[/#list][/#macro]
 [#macro initCourseTable(table,tableIndex)]
   [#if table.style == "WEEK_TABLE"]
-  <div class="grid" style="border:0.5px solid #006CB2">
-    <table width="100%" align="center" class="gridtable"  style="text-align:center">
+    <table width="100%" align="center" class="grid-table"  style="text-align:center">
       <thead>
         <tr>
           <th style="background-color:#DEEDF7;" height="10px" width="110px">节次/星期</th>
@@ -26,10 +25,8 @@
       [/#list]
     </table>
     [@tableScripts table,tableIndex/]
-  </div>
   [#else]
-  <div class="grid" style="border:0.5px solid #006CB2">
-    <table width="100%" align="center" class="gridtable"  style="text-align:center">
+    <table width="100%" align="center" class="grid-table"  style="text-align:center">
         <thead>
          <tr height="10px">
           <th style="background-color: #DEEDF7;width:80px" rowspan="2">星期/节次</th>
@@ -53,7 +50,6 @@
       [/#list]
     </table>
     [@tableScripts table,tableIndex/]
-  </div>
   [/#if]
   [@tableLegend/]
 [/#macro]

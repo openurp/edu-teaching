@@ -3,7 +3,7 @@
 <script>
   var emptyScoreStatuses=[[#list setting.emptyScoreStatuses as s]'${s.id}'[#if s_has_next],[/#if][/#list]];
 </script>
-<script language="JavaScript" type="text/JavaScript" src="${b.base}/static/edu/grade/input.js?ver=20201212"></script>
+<script language="JavaScript" type="text/JavaScript" src="${b.base}/static/edu/grade/input.js?ver=20231212"></script>
 [#macro gradeTd(grade, gradeType, courseTaker, index)]
 <td id="TD_${(gradeType.id)!}_${courseTaker.std.id}">
 [#local examStatus=NormalExamStatus/]
@@ -36,13 +36,13 @@
       [#if currentScoreMarkStyle.numerical]
           <input type="text" class="text"
               onfocus="this.style.backgroundColor='yellow'"
-              onblur="checkScore(${index + 1}, this);this.style.backgroundColor='white';"
+              onblur="this.style.backgroundColor=''"
+              onchange="checkScore(${index + 1}, this);"
               tabIndex="${index+1}"
               id="${(gradeType.id)!}_${index + 1}" name="${gradeType.id}_${courseTaker.std.id}"
           value="[#if grade?string != "null"]${(examGrade.score)!}[/#if]" style="width:40px" maxlength="5" role="gradeInput"/>
       [#else]
          <select onfocus="this.style.backgroundColor='yellow'"
-                  onblur="this.style.backgroundColor='white'"
                   onchange="checkScore(${index + 1}, this)"
                   id="${(gradeType.id)!}_${index + 1}" name="${(gradeType.id)!}_${courseTaker.std.id}"
                   style="width:70px" role="gradeInput">
@@ -54,7 +54,7 @@
       [/#if]
       [#if gradeType.examType?? || (gradeState.getPercent(gradeType)!0)=100]
       [@b.select label="" items=examStatuses value=((examGrade.examStatus)!examStatus) name="examStatus_" + (gradeType.id)! + "_" + courseTaker.std.id id="examStatus_" + (gradeType.id)! + "_" + (index + 1) style="width:60px;"
-      onchange="changeExamStatus('${(gradeType.id)!}_${index + 1}',this);checkScore(${index + 1}, this)"/]
+      onchange="changeExamStatus('${(gradeType.id)!}_${index + 1}',this);gradeTable.calcGa(${index + 1});"/]
       [/#if]
     [/#if]
 [/#if]
@@ -113,7 +113,7 @@
       [/#if]
     [/#list]
     gradeTable = new GradeTable();
-    gradeTable.calcGaUrl="${b.url('grade-calculator')}";
+    gradeTable.calcGaUrl="${b.url('ga-calculator')}";
     [#list inputGradeTypes as gradeType]
     gradeTable.gradeState[${gradeType_index}] = new Object();
     gradeTable.gradeState[${gradeType_index}].id = "${(gradeType.id)!}";
@@ -138,9 +138,9 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
     </table>
     <br/>
     [/#if]
-    <form id="gradeForm" name="gradeForm" action="${b.url("!saveGa")}" method="post" onsubmit="return false;">
+    <form id="gradeForm" name="gradeForm" action="${b.url("!saveGa")}" method="post" onkeypress="gradeTable.onReturn.focus(event);return false;">
     <input name="clazzId" value="${clazz.id}" type="hidden"/>
-    <input name="gradeTypeIds" value="[#list gradeTypes as t]${t.id},[/#list]${GA.id}" type="hidden"/>
+    <input name="gradeTypeIds" value="[#list gradeTypes as t]${t.id},[/#list]${EndGa.id}" type="hidden"/>
     <table align="center" border="0" style="font-size:0.875rem;border-collapse: collapse;border:solid;border-width:1px;border-color:Wheat;width:100%;">
       <tr style="background-color: #FFFFBB">
         <td width="33%">课程代码:${clazz.course.code}</td>
@@ -162,7 +162,7 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
         <td id="timeElapse"></td>
       </tr>
     </table>
-    <table class="gridtable" style="width:100%;border:1px solid" align="center" onkeypress="gradeTable.onReturn.focus(event)">
+    <table class="grid-table" align="center" >
         <tr align="center" style="backGround-color:LightBlue">
         [#assign canInputedCount = 0/]
         [#list 1..2 as i]
@@ -204,19 +204,18 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
     </table>
     [#if courseTakers?size != 0]
     <table width="100%" height="70px">
-        <tr>
-            <td align="center" id="submitTd">
-            [#if (canInputedCount > 0 && clazz.enrollment.courseTakers?size > 0)]
-             <input type="button" id="bnJustSave" onclick="justSave(event)" title="剩余部分下次录入" value="暂存"/>
-             &nbsp;&nbsp;&nbsp;
-             <input type="button" id="bnSubmit" onclick="return submitSave(event);" value="提交">
-             [/#if]
-            </td>
-        </tr>
+      <tr>
+        <td align="center" id="submitTd">
+        [#if (canInputedCount > 0 && clazz.enrollment.courseTakers?size > 0)]
+         <button class="btn btn-sm btn-outline-info" id="bnJustSave" onclick="justSave(event)" title="剩余部分下次录入"><i class="fa-regular fa-floppy-disk"></i>暂存</button>
+         &nbsp;&nbsp;&nbsp;
+         <button class="btn btn-sm btn-outline-primary" id="bnSubmit" onclick="return submitSave(event);"><i class="fa-regular fa-floppy-disk"></i>提交</button>
+         [/#if]
+        </td>
+      </tr>
     </table>
     [/#if]
     </form>
-    [@b.form name="goBackForm" target="contentDiv" action="${b.url('!clazz')}?clazzId=${clazz.id}"/]
 </div>
 <script language="JavaScript">
     gradeTable.changeTabIndex(document.gradeForm,true);
@@ -224,7 +223,7 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
       jQuery("input[role='gradeInput']").each(function(){
         var obj = document.getElementById("examStatus_" + this.id);
         var scoreId = this.id;
-      changeExamStatus(scoreId,obj);
+        changeExamStatus(scoreId,obj);
       })
     })
 

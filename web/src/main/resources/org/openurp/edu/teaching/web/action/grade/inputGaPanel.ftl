@@ -1,21 +1,21 @@
 [#ftl]
 
 [#--总评成绩录入--]
-[#assign gaGradeTypeState = gradeState.getState(GA)!/]
+[#assign gaGradeTypeState = gradeState.getState(EndGa)!/]
 <div class="card card-info card-primary card-outline">
   <div class="card-header">
      <h3 class="card-title"><i class="fa-solid fa-chalkboard-user"></i> 期末总评</h3>
      <div class="card-tools">
-        [#assign gastatus=(gradeState.getState(GA).status)!0/]
+        [#assign gastatus=(gradeState.getState(EndGa).status)!0/]
         <span style="margin-right:10px">[#if gastatus==1]<i class="fa-solid fa-check"></i>已提交[#elseif gastatus=2]<i class="fa-solid fa-brightness"></i>已发布[/#if]</span>
-        [#if (gradeState.getState(GA).updatedAt)??]上次录入:${gradeState.getState(GA).updatedAt?string("yyyy-MM-dd HH:mm")}[/#if]
+        [#if (gradeState.getState(EndGa).updatedAt)??]上次录入:${gradeState.getState(EndGa).updatedAt?string("yyyy-MM-dd HH:mm")}[/#if]
     </div>
   </div>
   <div class="card-body">
     <form method="post" action="" id="actionForm2" name="actionForm2">
       <input type="hidden" name="clazzId" value="${clazz.id}"/>
       <input type="hidden" name="clazzIds" value="${clazz.id}"/>
-      <input type="hidden" name="gradeTypeIds" value="[#list gaGradeTypes as t]${t.id},[/#list]${GA.id}"/>
+      <input type="hidden" name="gradeTypeIds" value="[#list gaGradeTypes as t]${t.id},[/#list]${EndGa.id}"/>
       <input type="hidden" name="kind" value="task"/>
       <input type="hidden" name="isChangeGA" value="1"/>
       <table align="center" width="100%" cellpadding="0" cellpadding="0" >
@@ -51,7 +51,7 @@
                   [#if ((gradeTypeState.confirmed)!false) || ((gaGradeTypeState.confirmed)!false)]
                    [@small_stateinfo status=(gradeTypeState.status!0)/]
                   [#else]
-                  [#if  (gradeTypeState.scorePercent!0)<100]<div>录入该项成绩时请直接录入<span style='color: red;'>原始分数</span>，不要折算。</div>[#else]请将平时成绩和考核成绩折算后录入[/#if]
+                  [#if  (gradeTypeState.scorePercent!0)<100]<div>请直接录入<span style='color: red;'>原始分数</span>，不要折算。</div>[#else]请将平时成绩和考核成绩折算后录入[/#if]
                   [/#if]
                 </td>
               </tr>
@@ -62,14 +62,12 @@
               <tr height="50px">
                 <td>
                   <div class="btn-group">
-                    [#--
-                    [@reportLink url="${b.url('report!blank?clazz.id='+clazz.id)}" onclick="" caption="空白登分表"/]
+
+                    [@reportLink url="${b.url('!blank?clazz.id='+clazz.id)}" onclick="" caption="空白登分表"/]
                     [#if ((gaGradeTypeState.confirmed)!false)]
                       [@reportLink url="#" onclick="printStatReport('clazz');return false;" caption="分段统计表"/]
-                      [@reportLink url="#" onclick="printStatReportForExam();return false;" caption="试卷分析表"/]
+                      [#--[@reportLink url="#" onclick="printStatReportForExam();return false;" caption="试卷分析表"/]--]
                     [/#if]
-                    [@infoLink url="#" onclick="gradeInfo(document.actionForm2);return false;" caption="查看"/]
-                    --]
                   </div>
                   [#if !((gaGradeTypeState.confirmed)!false)]
                     [#if gradeInputSwitch.checkOpen()]
@@ -80,6 +78,9 @@
                     [/#if]
                   [#else]
                     [@reportLink2 url="#" onclick="gaPrint();return false;" caption="期末总评"/]
+                    [#if !gaGradeTypeState.published]
+                      [@b.a class="btn btn-sm btn-outline-warning" href="grade!revokeGa?clazzId="+clazz.id  onclick="return bg.Go(this,null,'确定撤回?')"]<i class="fa-solid fa-undo"></i>撤回[/@]
+                    [/#if]
                   [/#if]
                  </td>
               </tr>
@@ -131,7 +132,7 @@
   }
 
   function gaPrint() {
-    bg.form.submit("actionForm2","${b.url('!reportGa')}","_blank");
+    bg.form.submit("actionForm2","${b.url('!report')}","_blank");
   }
   beangle.load(["bootstrap"],function(){
     $('[data-toggle="popover"]').popover({html:true,trigger:"focus"})

@@ -1,6 +1,7 @@
 [#ftl]
 [@b.head/]
 <div class="container-fluid">
+[#include "../project.ftl" /]
 <script language="JavaScript" type="text/JavaScript" src="${b.base}/static/edu/TaskActivity.js?v=20230531"></script>
 [@b.toolbar title="我的课程"/]
 [@base.semester_bar value=semester! formName='courseTableForm'/]
