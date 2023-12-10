@@ -188,8 +188,8 @@ class GradeAction extends TeacherSupport {
     helper.putGradeMap(clazz, null)
     helper.buildGradeConfig(clazz, gradeState, gradeTypes)
     put("EndGa", getCode(classOf[GradeType], GradeType.EndGa))
-    put("USUAL", getCode(classOf[GradeType], GradeType.Usual))
-    put("DELAY", getCode(classOf[GradeType], GradeType.Delay))
+    put("Usual", getCode(classOf[GradeType], GradeType.Usual))
+    put("Delay", getCode(classOf[GradeType], GradeType.Delay))
 
     put("ABSENT", ExamStatus.Absent)
     put("NEW", Grade.Status.New)
@@ -282,7 +282,6 @@ class GradeAction extends TeacherSupport {
     redirect(if submit then "report" else "inputGa", params.toString, "info.save.success")
   }
 
-
   def removeGa(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLongId("clazz"))
     val teacher = getTeacher
@@ -333,18 +332,18 @@ class GradeAction extends TeacherSupport {
   }
 
   def report(): View = {
-    val makeup = getBoolean("makeup", false)
-    if (makeup) {
-      forward("reportMakeup")
-    } else {
+    val gradeTypeId = getInt("gradeType.id", GradeType.EndGa)
+    if (gradeTypeId == GradeType.EndGa) {
       val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
       val grades = entityDao.findBy(classOf[CourseGrade], "clazz", clazz)
       val gradeState = clazzGradeService.getState(clazz)
       val reports = ClazzGradeReport.build(gradeState, grades, true, settings.getSetting(clazz.project), 3000)
-      put("END", getCode(classOf[GradeType], GradeType.End))
+      put("End", getCode(classOf[GradeType], GradeType.End))
       put("EndGa", getCode(classOf[GradeType], GradeType.EndGa))
       put("reports", reports)
       forward("report/reportGa")
+    } else {
+      forward("report/reportMakeup")
     }
   }
 

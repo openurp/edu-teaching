@@ -15,7 +15,7 @@
     [#assign totalNormal=0/]
     [#assign totalNormalScore=0/]
     [#list report.grades as courseGrade]
-      [#assign examGrade=courseGrade.getGrade(END)!"null"/]
+      [#assign examGrade=courseGrade.getGrade(End)!"null"/]
       [#if examGrade!="null" && (examGrade.examStatus.id!0)=1]
         [#assign totalNormal=totalNormal + 1 /] [#assign totalNormalScore=totalNormalScore+(examGrade.courseGrade.getGrade(EndGa).score)!0/]
       [/#if]

@@ -133,14 +133,14 @@ table.reportFoot.tr {
               ${teachclassName}
             [/#if]
             </td>
-            <td>${b.text("common.courseType")}:${clazz.courseType.name}</td>
+            <td>课程类别:${clazz.courseType.name}</td>
             <td>考核方式:${clazz.examMode.name}</td>
             <td align="left">人数:${(courseTakers?size)!0}</td>
         </tr>
         <tr>
           <td align="left">院系:${clazz.teachDepart.name}</td>
           <td colspan="2">百分比:
-         ${USUAL.name}${(courseGradeState.getPercent(USUAL)!('___'))!}％,${END.name}${(courseGradeState.getPercent(END)!('___'))!}％
+         ${Usual.name}${(courseGradeState.getPercent(Usual)!('___'))!}％,${End.name}${(courseGradeState.getPercent(End)!('___'))!}％
           </td>
           <td></td>
         </tr>
@@ -224,7 +224,7 @@ table.reportFoot.tr {
     <td>${courseTaker.takeType.name}</td>
     <td>
     [#if et.examType.name?index_of('缓')> -1]
-    ${(courseGrades.get(courseTaker.std).getScoreText(USUAL))!}
+    ${(courseGrades.get(courseTaker.std).getScoreText(Usual))!}
     [#else]
     --
     [/#if]
@@ -234,8 +234,8 @@ table.reportFoot.tr {
     <td style="font-size:0.8em">
      [#if et.examType.name?index_of('缓')> -1] 缓考[#t]
      [#else]
-       [#if ((cg.getExamGrade(END).examStatus.id)!0) != 1]
-        ${(cg.getExamGrade(END).examStatus.name)!}[#t]
+       [#if ((cg.getExamGrade(End).examStatus.id)!0) != 1]
+        ${(cg.getExamGrade(End).examStatus.name)!}[#t]
        [#else]不及格[#t]
        [/#if][#t]
      [/#if]

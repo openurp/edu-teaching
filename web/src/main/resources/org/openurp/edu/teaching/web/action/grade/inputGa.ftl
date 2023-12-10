@@ -30,8 +30,8 @@
     ${unNormalExamStatus.name}
   [#else]
       [#if (grade.getGrade(gradeType))??] [#local examGrade=grade.getGrade(gradeType)/][/#if]
-      [#if gradeType.id=DELAY.id &&  grade.getGrade(USUAL)??]
-      平时:${(grade.getGrade(USUAL).score)!0}
+      [#if gradeType.id=Delay.id &&  grade.getGrade(Usual)??]
+      平时:${(grade.getGrade(Usual).score)!0}
       [/#if]
       [#if currentScoreMarkStyle.numerical]
           <input type="text" class="text"
@@ -109,7 +109,7 @@
     [#list gradeTypes as g]
       [#if !g.ga]
        [#assign inputGradeTypes=inputGradeTypes + [g]]
-       [#if g.id=DELAY.id][#assign inputGradeTypes=inputGradeTypes + [USUAL]][/#if]
+       [#if g.id=Delay.id][#assign inputGradeTypes=inputGradeTypes + [Usual]][/#if]
       [/#if]
     [/#list]
     gradeTable = new GradeTable();

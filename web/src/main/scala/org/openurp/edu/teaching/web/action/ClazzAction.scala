@@ -39,6 +39,7 @@ import org.openurp.base.model.User
 import org.openurp.base.service.{Features, ProjectConfigService}
 import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.{TeachingMethod, TeachingNature}
+import org.openurp.edu.attendance.model.StdDayoff
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.*
@@ -46,7 +47,7 @@ import org.openurp.edu.clazz.service.ClazzMaterialService
 import org.openurp.edu.schedule.service.ScheduleDigestor
 
 import java.io.InputStream
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, ZoneId}
 import java.util
 import java.util.Locale
 import scala.collection.mutable
@@ -75,6 +76,32 @@ class ClazzAction extends ActionSupport {
     put("avatarUrls", avatarUrls)
     put("clazzes", clazzProvider.getClazzes(clazz.semester, teacher, clazz.project))
     put("tutorSupported", configService.get(clazz.project, Features.StdInfoTutorSupported))
+
+    val lessons = Collections.newBuffer[(Instant, Instant)]
+    clazz.schedule.activities.foreach { a =>
+      a.time.dates foreach { d =>
+        val s1 = d.atTime(a.time.beginAt.hour, a.time.beginAt.minute).atZone(ZoneId.systemDefault()).toInstant
+        val s2 = d.atTime(a.time.endAt.hour, a.time.endAt.minute).atZone(ZoneId.systemDefault()).toInstant
+        lessons.addOne((s1, s2))
+      }
+    }
+    if (lessons.nonEmpty) {
+      val q1 = OqlBuilder.from(classOf[StdDayoff], "of")
+      q1.where("of.std in(:stds)", clazz.enrollment.courseTakers.map(_.std))
+      q1.where("of.semester =:semester", clazz.semester)
+      q1.orderBy("of.std.code,of.beginAt")
+      val stdDayoffs = entityDao.search(q1)
+
+      val stdLeaveStats = Collections.newMap[Student, StdLeaveStat]
+      stdDayoffs foreach { of =>
+        lessons.foreach { l =>
+          if l._1.isBefore(of.endAt) && of.beginAt.isBefore(l._2) then
+            val stat = stdLeaveStats.getOrElseUpdate(of.std, new StdLeaveStat(clazz, of.std))
+            stat.addLeave(l._1, of.dayoffType, of.reason, None)
+        }
+      }
+      put("stdLeaveStats", stdLeaveStats.values.filter(_.leaves.nonEmpty).toBuffer.sortBy(_.std.code))
+    }
     forward()
   }
 

@@ -11,7 +11,7 @@
     [/@]
   [/@]
 
-  [@b.card_body style="padding-top: 0px;"]
+  [@b.card_body style="padding-top: 0px;max-height: 500px;overflow: scroll;"]
     <table class="table table-hover table-sm table-striped" style="font-size: 13px;">
       <thead>
         <th width="30px">#</th>

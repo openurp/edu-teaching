@@ -1,6 +1,5 @@
 [#ftl]
 [@b.head/]
-[#include "/template/macros.ftl"/]
 [#include "blankMacros.ftl"/]
 [@reportStyle/]
 [@b.toolbar title="教学班补缓登分表打印"]
