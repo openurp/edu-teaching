@@ -138,9 +138,7 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
     </table>
     <br/>
     [/#if]
-    <form id="gradeForm" name="gradeForm" action="${b.url("!saveGa")}" method="post" onkeypress="gradeTable.onReturn.focus(event);return false;">
-    <input name="clazzId" value="${clazz.id}" type="hidden"/>
-    <input name="gradeTypeIds" value="[#list gradeTypes as t]${t.id},[/#list]${EndGa.id}" type="hidden"/>
+
     <table align="center" border="0" style="font-size:0.875rem;border-collapse: collapse;border:solid;border-width:1px;border-color:Wheat;width:100%;">
       <tr style="background-color: #FFFFBB">
         <td width="33%">课程代码:${clazz.course.code}</td>
@@ -162,7 +160,11 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
         <td id="timeElapse"></td>
       </tr>
     </table>
-    <table class="grid-table" align="center" >
+
+    <form id="gradeForm" name="gradeForm" action="${b.url("!saveGa")}" method="post" >
+    <input name="clazzId" value="${clazz.id}" type="hidden"/>
+    <input name="gradeTypeIds" value="[#list gradeTypes as t]${t.id},[/#list]${EndGa.id}" type="hidden"/>
+    <table class="grid-table" align="center" onkeypress="gradeTable.onReturn.focus(event);">
         <tr align="center" style="backGround-color:LightBlue">
         [#assign canInputedCount = 0/]
         [#list 1..2 as i]
@@ -202,6 +204,7 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
         </tr>
         [/#list]
     </table>
+    </form>
     [#if courseTakers?size != 0]
     <table width="100%" height="70px">
       <tr>
@@ -215,7 +218,7 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
       </tr>
     </table>
     [/#if]
-    </form>
+
 </div>
 <script language="JavaScript">
     gradeTable.changeTabIndex(document.gradeForm,true);

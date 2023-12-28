@@ -59,58 +59,55 @@ table.reportFoot.tr {
 [/#macro]
 
 [#macro gaReportHead report]
-<table align="center" style="text-align:center" cellpadding="0" cellspacing="0">
-        <tr>
-            <td style="font-weight:bold;font-size:14pt" height="30px">
-            ${report.clazz.project.school.name}(${(report.clazz.semester.schoolYear)?if_exists}学年${(report.clazz.semester.name)?if_exists?replace("0","第")}学期)
-            期末总评成绩登记表
-             <td>
-        </tr>
-    </table>
-    <table width='95%' class="reportTitle" align='center'>
-        <tr>
-          <td width="30%">课程名称:${report.clazz.course.name}</td>
-            <td width="25%">
-            课程序号:
-            [#if report.clazz.crn?starts_with(report.clazz.course.code)]${report.clazz.crn}
-            [#else] ${report.clazz.course.code}(${report.clazz.crn})[/#if]
-            </td>
-            <td width="20%">课程类别:${report.clazz.courseType.name}</td>
-            <td width="15%">教师:[#list report.clazz.teachers as t]${t.name}&nbsp;[/#list]</td>
-        </tr>
-        <tr>
-            <td colspan="2">班级名称:
-            [#assign len = (report.clazz.clazzName)?length/]
-            [#assign squadName = report.clazz.clazzName!/]
-            [#assign max = 28/]
-            [#if len>max]
-              [#list 0..(len/max-1) as i]
-                <span style="font-size:11px">${squadName?substring(i*max,i*max+max)} </span>
-              [/#list]
-              [#if (len%max !=0)]
-                <span style="font-size:11px">${squadName?substring(len-(len%max),len)}</span>
-              [/#if]
-            [#else]
-              ${squadName}
-            [/#if]
-            </td>
-            <td>考核方式:${report.clazz.examMode.name}</td>
-            <td align="left">人数:${(report.grades?size)!0}</td>
-        </tr>
-        <tr>
-          <td align="left">开课院系:${report.clazz.teachDepart.name}</td>
-          <td colspan="3">成绩类型:
-            [#list report.gradeTypes as gradeType]
-            [#if (report.gradeState.getState(gradeType).scorePercent)??]&nbsp;${(gradeType.name)!}(${report.gradeState.getState(gradeType).scorePercent}％)[/#if]
-            [/#list]
-          </td>
-        </tr>
-    </table>
+  <table align="center" style="text-align:center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="font-weight:bold;font-size:14pt" height="30px">
+    ${report.clazz.project.school.name}(${(report.clazz.semester.schoolYear)?if_exists}学年${(report.clazz.semester.name)?if_exists?replace("0","第")}学期)
+    期末总评成绩登记表
+      <td>
+    </tr>
+  </table>
+  <table width='95%' class="reportTitle" align='center'>
+    <tr>
+      <td width="30%">课程名称:${report.clazz.course.name}</td>
+      <td width="25%">课程序号:${report.clazz.crn}</td>
+      <td width="20%">课程类别:${report.clazz.courseType.name}</td>
+      <td width="15%">教师:[#list report.clazz.teachers as t]${t.name}&nbsp;[/#list]</td>
+    </tr>
+    <tr>
+      <td>班级名称:
+      [#assign len = (report.clazz.clazzName)?length/]
+      [#assign squadName = report.clazz.clazzName!/]
+      [#assign max = 28/]
+      [#if len>max]
+        [#list 0..(len/max-1) as i]
+          <span style="font-size:11px">${squadName?substring(i*max,i*max+max)} </span>
+        [/#list]
+        [#if (len%max !=0)]
+          <span style="font-size:11px">${squadName?substring(len-(len%max),len)}</span>
+        [/#if]
+      [#else]
+        ${squadName}
+      [/#if]
+      </td>
+      <td>课程代码:${report.clazz.course.code}</td>
+      <td>考核方式:${report.clazz.examMode.name}</td>
+      <td align="left">人数:${(report.grades?size)!0}</td>
+    </tr>
+    <tr>
+      <td align="left">开课院系:${report.clazz.teachDepart.name}</td>
+      <td colspan="3">成绩类型:
+        [#list report.gradeTypes as gradeType]
+        [#if (report.gradeState.getState(gradeType).scorePercent)??]&nbsp;${(gradeType.name)!}(${report.gradeState.getState(gradeType).scorePercent}％)[/#if]
+        [/#list]
+      </td>
+    </tr>
+  </table>
 [/#macro]
 
 [#macro gaReportFoot report]
-    <table align="center" class="reportFoot" width="95%">
-      <tr>
+  <table align="center" class="reportFoot" width="95%">
+    <tr>
       <td width="20%">统计人数:${totalNormal!0}</td>
       <td width="25%">总评平均成绩:[#if totalNormal>0]${totalNormalScore/totalNormal}[/#if]</td>
       <td width="25%">教师签名:</td>
@@ -120,46 +117,46 @@ table.reportFoot.tr {
 [/#macro]
 
 [#macro makeupReportHead report]
-<table align="center" style="text-align:center" cellpadding="0" cellspacing="0">
-        <tr>
-            <td style="font-weight:bold;font-size:14pt" height="30px">
-            ${report.clazz.project.school.name}(${(report.clazz.semester.schoolYear)?if_exists}学年${(report.clazz.semester.name)?if_exists?replace("0","第")}学期)
-            补(缓)考成绩登记表
-             <td>
-        </tr>
-    </table>
-    <table width='95%' class="reportTitle" align='center'>
-        <tr>
-          <td width="30%">课程名称:${report.clazz.course.name}</td>
-            <td width="25%">课程代码:${report.clazz.course.code}</td>
-            <td width="20%">课程类别:${report.clazz.courseType.name}</td>
-            <td width="15%">教师:[#list report.clazz.teachers as t]${t.name}&nbsp;[/#list]</td>
-        </tr>
-        <tr>
-            <td>班级名称:
-            [#assign len = (report.clazz.clazzName)?length/]
-            [#assign squadName = report.clazz.clazzName!/]
-            [#assign max = 28/]
-            [#if len>max]
-              [#list 0..(len/max-1) as i]
-                ${squadName?substring(i*max,i*max+max)}<br>
-              [/#list]
-              [#if (len%max !=0)]
-                ${squadName?substring(len-(len%max),len)}
-              [/#if]
-            [#else]
-              ${squadName}
-            [/#if]
-            </td>
-            <td>课程序号:${report.clazz.crn}</td>
-            <td>考核方式:${(report.clazz.examMode.name)!}</td>
-            <td align="left">人数:${(report.grades?size)!0}</td>
-        </tr>
-        <tr>
-          <td align="left">院系:${(report.clazz.enrollment.depart.name)!}</td>
-          <td colspan="3"></td>
-        </tr>
-    </table>
+  <table align="center" style="text-align:center" cellpadding="0" cellspacing="0">
+    <tr>
+      <td style="font-weight:bold;font-size:14pt" height="30px">
+      ${report.clazz.project.school.name}(${(report.clazz.semester.schoolYear)?if_exists}学年${(report.clazz.semester.name)?if_exists?replace("0","第")}学期)
+      补(缓)考成绩登记表
+       <td>
+    </tr>
+  </table>
+  <table width='95%' class="reportTitle" align='center'>
+    <tr>
+      <td width="30%">课程名称:${report.clazz.course.name}</td>
+      <td width="25%">课程序号:${report.clazz.crn}</td>
+      <td width="20%">课程类别:${report.clazz.courseType.name}</td>
+      <td width="15%">教师:[#list report.clazz.teachers as t]${t.name}&nbsp;[/#list]</td>
+    </tr>
+    <tr>
+      <td>班级名称:
+      [#assign len = (report.clazz.clazzName)?length/]
+      [#assign squadName = report.clazz.clazzName!/]
+      [#assign max = 28/]
+      [#if len>max]
+        [#list 0..(len/max-1) as i]
+          ${squadName?substring(i*max,i*max+max)}<br>
+        [/#list]
+        [#if (len%max !=0)]
+          ${squadName?substring(len-(len%max),len)}
+        [/#if]
+      [#else]
+        ${squadName}
+      [/#if]
+      </td>
+      <td>课程代码:${report.clazz.course.code}</td>
+      <td>考核方式:${(report.clazz.examMode.name)!}</td>
+      <td align="left">人数:${(report.grades?size)!0}</td>
+    </tr>
+    <tr>
+      <td align="left">开课院系:${report.clazz.teachDepart.name}</td>
+      <td colspan="3"></td>
+    </tr>
+  </table>
 [/#macro]
 
 [#macro reportColumnTitle report]

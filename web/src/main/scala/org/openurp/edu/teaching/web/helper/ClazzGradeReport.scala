@@ -23,9 +23,6 @@ import org.openurp.edu.clazz.model.Clazz
 import org.openurp.edu.grade.model.{CourseGrade, CourseGradeState}
 import org.openurp.edu.grade.service.CourseGradeSetting
 
-import java.io.File
-import java.nio.file.Files
-
 object ClazzGradeReport {
   def build(gradeState: CourseGradeState, courseGrades: Seq[CourseGrade], isEndGa: Boolean, setting: CourseGradeSetting, pageSize: Int): Seq[ClazzGradeReport] = {
     if (isEndGa) {
@@ -36,7 +33,8 @@ object ClazzGradeReport {
         ClazzGradeReport(gradeState.clazz, gradeState, grades, gradeTypes)
       }
     } else {
-      val gradeTypes = Set(new GradeType(GradeType.Makeup), new GradeType(GradeType.Delay))
+      val makeupAndDelay = Set(GradeType.Makeup, GradeType.Delay)
+      val gradeTypes = gradeState.examStates.filter(x => makeupAndDelay.contains(x.gradeType.id)).map(_.gradeType).toList.sortBy(_.code)
       val grades = courseGrades.filter(x => x.examGrades.exists(eg => gradeTypes.contains(eg.gradeType))).sortBy(_.std.code)
       Collections.split(grades.toList, pageSize) map { grades =>
         ClazzGradeReport(gradeState.clazz, gradeState, grades, gradeTypes)

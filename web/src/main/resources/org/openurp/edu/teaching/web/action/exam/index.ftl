@@ -35,6 +35,7 @@
             <th style="width:20%">教学班</th>
             <th style="width:15%">考试时间</th>
             <th style="width:8%">考试地点</th>
+            <th style="width:5%">人数</th>
             <th style="width:7%">职责</th>
             <th style="width:15%">操作</th>
           </tr>
@@ -53,6 +54,7 @@
           [#if activity_index==0]
           <td rowspan="${activities?size}">[#if activity.publishState.timePublished]${(examRoom.examOn)?string('yyyy-MM-dd')!}&nbsp;&nbsp;${(examRoom.beginAt)!}~${(examRoom.endAt)!}[/#if]</td>
           <td rowspan="${activities?size}">[#if activity.publishState.roomPublished]${(examRoom.room.name)!}[/#if]</td>
+          <td rowspan="${activities?size}">${examRoom.stdCount}</td>
           <td rowspan="${activities?size}">${duty.duty.name}</td>
           <td rowspan="${activities?size}">
             [#if activity.publishState.roomPublished]

@@ -75,7 +75,7 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
     clazz.enrollment.courseTakers.sortBy(_.std.code).toList
   }
 
-  def putGradeMap(clazz: Clazz, takers: List[CourseTaker]): Unit = {
+  def putGradeMap(clazz: Clazz, takers: Iterable[CourseTaker]): Unit = {
     val courseTakers = if null == takers then this.getCourseTakers(clazz) else takers
     ActionContext.current.attribute("courseTakers", courseTakers)
     ActionContext.current.attribute("gradeMap", getGradeMap(clazz, courseTakers, true))
@@ -203,7 +203,12 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
     val examScoreStr = Params.get(scoreInputName).getOrElse("")
     var examStatusId = Params.getInt("examStatus_" + scoreInputName).getOrElse(ExamStatus.Normal)
     // 输入值无效
-    if (null == examScoreStr && ExamStatus.Normal == examStatusId && !(gradeType.id == GradeType.EndGa)) return
+    if (Strings.isBlank(examScoreStr) && ExamStatus.Normal == examStatusId && !(gradeType.id == GradeType.EndGa)) {
+      val examGrade = grade.getExamGrade(gradeType).orNull
+      if null != examGrade then grade.examGrades -= examGrade
+      return
+    }
+
     val examScore = Params.getFloat(scoreInputName)
     // 获得考试情况
     var examStatus: ExamStatus = null

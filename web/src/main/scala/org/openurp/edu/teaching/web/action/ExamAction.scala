@@ -119,6 +119,7 @@ class ExamAction extends TeacherSupport {
     val examRooms = entityDao.find(classOf[ExamRoom], getLongIds("examRoom"))
     put("examRooms", examRooms)
     put("examType", examRooms.head.examType)
+    put("courseExamTakers", examRooms.map(x => (x, x.examTakers.groupBy(_.clazz.course))).toMap)
     forward()
   }
 

@@ -18,9 +18,7 @@
 
     <div class="col-md-6">
       [@b.div href="!notices?clazz.id="+clazz.id/]
-      [#if stdLeaveStats?? && stdLeaveStats?size>0]
-      [#include "stdDayoff.ftl"/]
-      [/#if]
+      [#include "stdLeave.ftl"/]
       [#include "stdlist.ftl"/]
     </div>
 

@@ -34,7 +34,7 @@
           [/#if]
         [/@]
         [@b.col width="17%" title="补缓考试成绩"]
-        [#if (makeupTakeCounts.get(clazz)!0)>0]
+        [#if (makeupTakerCounts.get(clazz)!0)>0]
           [@b.a href="!blank?clazz.id=${clazz.id}&makeup=1" target="_blank"]登分册[/@]
           [#if (gradeStates.get(clazz).getState(MakeupGa).confirmed)!false ||  (gradeStates.get(clazz).getState(DelayGa).confirmed)!false]
             [@b.a href="!report?clazzId=${clazz.id}&gradeType.id=${MakeupGa.id}&gradeType.id=${DelayGa.id}" target="_blank"]成绩单[/@]

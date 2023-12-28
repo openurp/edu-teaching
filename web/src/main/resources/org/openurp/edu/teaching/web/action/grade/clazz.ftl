@@ -84,8 +84,8 @@
                   [#macro infoLink(url,onclick, caption)]<a href="${url}" class="btn btn-sm btn-outline-info" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-circle-info"></i> ${caption?default("查看")}</a>[/#macro]
                   [#macro inputHTML(url, onclick, caption)]<a href="${url}" onclick="${onclick}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i> ${caption?default("录入")}</a>[/#macro]
                   [#macro removeGradeHTML(url,onclick,caption)]<a href="${url}" onclick="${onclick}" class="btn btn-sm btn-outline-danger" ><i class="fa-solid fa-xmark"></i> ${caption?default("删除")}</a>[/#macro]
-                  [#macro reportLink(url,onclick,caption)]<a href="${url}" target="_blank" class="btn btn-sm btn-outline-info" onclick="${onclick}"><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
-                  [#macro reportLink2(url,onclick,caption)]<a href="${url}" target="_blank"  class="btn btn-sm btn-outline-primary" onclick="${onclick}"><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
+                  [#macro reportLink(url,onclick,caption)]<a href="${url}" target="_blank" class="btn btn-sm btn-outline-info" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
+                  [#macro reportLink2(url,onclick,caption)]<a href="${url}" target="_blank"  class="btn btn-sm btn-outline-primary" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
                 </td>
               </tr>
             </table>
@@ -95,11 +95,11 @@
     </div>
 
   [#if gaGradeTypes?size>0]
-      [#include "inputGaPanel.ftl"/]
+      [#include "panelEndGa.ftl"/]
    [/#if]
    [#if gradeInputSwitch.types?seq_contains(MakeupGa) && ((gradeState.getState(EndGa).status)!0)>0]
     <hr>
-   [#include "inputMakeupPanel.ftl"/]
+   [#include "panelMakeup.ftl"/]
    [/#if]
     [#else]
         [@b.div style="margin-top:10px;"]成绩还未开放录入![/@]

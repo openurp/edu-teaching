@@ -13,7 +13,7 @@
 [#assign tableNum=0]
 [#list examRooms as examRoom]
    [#if examRoom.activities?size != 1]
-    [#assign courseStds = examRoom.courseStds/]
+    [#assign courseStds = courseExamTakers.get(examRoom)/]
     [#list courseStds?keys as c]
       [@displayTable examRoom,c,courseStds.get(c)/]
     [/#list]
@@ -29,7 +29,7 @@
 
   <table width="100%" align="center">
     <tr>
-      <td align="center" colspan="4" style="font-size:18pt;height:45px" ><B>学生签名表</B><br></td>
+      <td align="center" colspan="4" style="font-size:18pt;height:45px" ><B>学生考试签名表</B><br></td>
       </tr>
       <tr>
           [#assign teachers = []/]
@@ -41,14 +41,14 @@
            [#list examRoom.examTakers as es][#if es.clazz.course=course][#list es.clazz.teachers as teacher][#if !teachers?seq_contains(teacher)][#assign teachers=teachers+[teacher]][/#if][/#list][/#if][/#list]
            [#list examRoom.examTakers as es][#if es.clazz.course=course][#if !crns?seq_contains(es.clazz.crn)][#assign crns=crns+[es.clazz.crn]][/#if][/#if][/#list]
           [/#if]
+          <td width="35%">课程序号:[#if crns?size>2]${crns?first} 等${crns?size}个[#else][#list crns  as no]${no}&nbsp;[/#list][/#if]</td>
           <td width="35%">课程代码:${course.code}</td>
-          <td width="35%">课程序号:[#if crns?size>2]${crns?first} 等${crns?size}个[#else][#list crns  as no]${no}&nbsp;[/#list][/#if]
-          </td>
           <td colspan="2">课程名称:${course.name}</td>
       </tr>
       <tr>
+          <td>考试类型:${examRoom.examType.name}</td>
           <td>开课院系:${examRoom.teachDepart.name}</td>
-          <td colspan="2">授课教师:[#list teachers as t] ${t.name}[#if t_has_next]&nbsp;[/#if][/#list]</td>
+          <td>授课教师:[#list teachers as t] ${t.name}[#if t_has_next]&nbsp;[/#if][/#list]</td>
       </tr>
       <tr>
           <td>考试时间:
@@ -71,8 +71,8 @@
         <td style="width:15%">学号</td>
         <td style="width:14%">姓名</td>
         <td style="width:17%">院系</td>
-        <td style="width:16%">班级</td>
-        <td style="width:15%">序号 教师</td>
+        <td style="width:20%">班级</td>
+        <td style="width:11%">序号 教师</td>
         <td style="width:10%">签名</td>
         <td style="width:8%">备注</td>
         [#else]

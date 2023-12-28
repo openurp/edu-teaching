@@ -39,7 +39,7 @@ import org.openurp.base.model.User
 import org.openurp.base.service.{Features, ProjectConfigService}
 import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.{TeachingMethod, TeachingNature}
-import org.openurp.edu.attendance.model.StdDayoff
+import org.openurp.edu.attendance.model.StdLeaveLesson
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.*
@@ -86,21 +86,13 @@ class ClazzAction extends ActionSupport {
       }
     }
     if (lessons.nonEmpty) {
-      val q1 = OqlBuilder.from(classOf[StdDayoff], "of")
-      q1.where("of.std in(:stds)", clazz.enrollment.courseTakers.map(_.std))
-      q1.where("of.semester =:semester", clazz.semester)
-      q1.orderBy("of.std.code,of.beginAt")
-      val stdDayoffs = entityDao.search(q1)
+      val q1 = OqlBuilder.from(classOf[StdLeaveLesson], "sll")
+      q1.where("sll.clazz=:clazz", clazz)
+      q1.orderBy("sll.std.code,sll.lessonOn")
+      val stdLeaveLessons = entityDao.search(q1)
 
-      val stdLeaveStats = Collections.newMap[Student, StdLeaveStat]
-      stdDayoffs foreach { of =>
-        lessons.foreach { l =>
-          if l._1.isBefore(of.endAt) && of.beginAt.isBefore(l._2) then
-            val stat = stdLeaveStats.getOrElseUpdate(of.std, new StdLeaveStat(clazz, of.std))
-            stat.addLeave(l._1, of.dayoffType, of.reason, None)
-        }
-      }
-      put("stdLeaveStats", stdLeaveStats.values.filter(_.leaves.nonEmpty).toBuffer.sortBy(_.std.code))
+      val stdLeaveStats = stdLeaveLessons.groupBy(x => x.std).map(x => new StdLeaveStat(x._1, x._2))
+      put("stdLeaveStats", stdLeaveStats.toBuffer.sortBy(_.std.code))
     }
     forward()
   }
@@ -441,3 +433,5 @@ class ClazzAction extends ActionSupport {
     entityDao.search(query).headOption
   }
 }
+
+class StdLeaveStat(val std: Student, val leaves: collection.Seq[StdLeaveLesson])
