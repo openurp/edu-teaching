@@ -49,10 +49,10 @@ class CoursetableAction extends TeacherSupport {
     table.setClazzes(clazzProvider.getClazzes(semester, teacher, project), weektimes)
     table.timeSetting = timeSettingService.get(project, semester, None)
     table.style = CourseTable.Style.WEEK_TABLE
-    if (getConfig(Features.ClazzTableStyle) == "UNIT_COLUMN") {
+    if (getConfig(Features.Clazz.TableStyle) == "UNIT_COLUMN") {
       table.style = CourseTable.Style.UNIT_COLUMN
     }
-    put("showClazzIndex", getConfig(Features.ClazzIndexSupported))
+    put("showClazzIndex", getConfig(Features.Clazz.IndexSupported))
     put("teachingNatures", codeService.get(classOf[TeachingNature]))
     put("table", table)
     ProfileTemplateLoader.setProfile(project.id)

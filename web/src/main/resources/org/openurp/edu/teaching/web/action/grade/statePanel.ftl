@@ -33,7 +33,7 @@
     [#assign openMakeup=false]
     [#list gradeInputSwitch.types as t][#if t.id==4 || t.id==6][#assign openMakeup=true][#break/][/#if][/#list]
     [#if gradeInputSwitch.checkOpen() && openMakeup]
-    [@b.a href="!clazz?clazzId=${clazz.id}#panelMakeup" target="_blank"]录入[/@]
+    [@b.a href="!clazz?clazzId=${clazz.id}" target="_blank"]录入[/@]
     [/#if]
   [/#if]
 [/#if]

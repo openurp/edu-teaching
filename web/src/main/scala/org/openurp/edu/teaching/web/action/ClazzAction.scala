@@ -75,7 +75,7 @@ class ClazzAction extends ActionSupport {
     val avatarUrls = clazz.teachers.map(x => (x.id, Ems.api + "/platform/user/avatars/" + Digests.md5Hex(x.code) + ".jpg")).toMap
     put("avatarUrls", avatarUrls)
     put("clazzes", clazzProvider.getClazzes(clazz.semester, teacher, clazz.project))
-    put("tutorSupported", configService.get(clazz.project, Features.StdInfoTutorSupported))
+    put("tutorSupported", configService.get(clazz.project, Features.Std.TutorSupported))
 
     val lessons = Collections.newBuffer[(Instant, Instant)]
     clazz.schedule.activities.foreach { a =>
