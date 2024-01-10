@@ -20,7 +20,7 @@ package org.openurp.edu.teaching.web.action
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.template.freemarker.ProfileTemplateLoader
 import org.beangle.web.action.view.View
-import org.openurp.base.edu.model.Teacher
+import org.openurp.base.hr.model.Teacher
 import org.openurp.base.edu.service.TimeSettingService
 import org.openurp.base.model.{Project, Semester}
 import org.openurp.code.edu.model.TeachingNature

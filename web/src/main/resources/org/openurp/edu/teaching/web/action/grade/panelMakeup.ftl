@@ -17,13 +17,16 @@
       <tr height="35px">
         <td>
         [#if makeupGaStatus<1 && gradeInputSwitch.checkOpen()]
-            [@inputHTML url="#" onclick="makeupInput();return false;" caption="录入" /]
-            [@b.a href="!removeMakeup?clazzId=${clazz.id}" class="btn btn-sm btn-outline-danger"  onclick="return bg.Go(this,null,'确定删除?')"]
-               <i class="fa-solid fa-xmark"></i>删除成绩
-             [/@b.a]
+          [@reportLink url="${b.url('!blank?makeup=1&clazz.id='+clazz.id)}" onclick="" caption="空白登分表"/]
+          [@inputHTML url="#" onclick="makeupInput();return false;" caption="录入" /]
+          &nbsp;&nbsp;
+          [@b.a href="!removeMakeup?clazzId=${clazz.id}" class="btn btn-sm btn-outline-danger"  onclick="return bg.Go(this,null,'确定删除?')"]
+             <i class="fa-solid fa-xmark"></i>删除成绩
+          [/@b.a]
         [/#if]
 
         [#if makeupGaStatus>0]
+          &nbsp;&nbsp;
           [@b.a href="!report?clazzId=${clazz.id}&gradeTypeIds=${Makeup.id},${Delay.id},${FINAL.id}" target="_blank"
              class="btn btn-sm btn-outline-primary"]
              <i class="fa-solid fa-print"></i>补缓考成绩
@@ -31,6 +34,7 @@
         [/#if]
 
         [#if makeupGaStatus==1 && gradeInputSwitch.checkOpen()]
+          &nbsp;&nbsp;
           [@b.a class="btn btn-sm btn-outline-warning" href="grade!revokeMakeup?clazzId="+clazz.id  onclick="return bg.Go(this,null,'确定撤回?')"]<i class="fa-solid fa-undo"></i>撤回[/@]
         [/#if]
         </td>

@@ -6,8 +6,8 @@ function GradeTable() {
             {"validator":/^\d+$/, "caption":"请输入0或正整数", "shortCaption":"0或正整数"},
             {"validator":/^\d*\.?\d{1}$/, "caption":"请输入0或正数，且保留一位小数", "shortCaption":"0、正数或保留一位小数的正数"}
             ];
-  this.gradeState = new Array();
-  this.gradeMap = new Object();
+  this.gradeStates = new Array();
+  this.gradeMap = new Map();
   this.gradeArray = new Array();
   this.precision = 0;
   this.tabByStd=null;
@@ -26,12 +26,11 @@ function GradeTable() {
   }
 
   this.hasEmpty = function () {
-    for (var i = 0; i < this.gradeState.length; i++) {
-      for (var j = 0; j < this.gradeArray.length; j++) {
-        grade = this.gradeArray[j];
-        inputs = jQuery("input[name='"+this.gradeState[i].name + '_' + grade.stdId+"']");
-        selects = jQuery("select[name='"+this.gradeState[i].name + '_' + grade.stdId+"']");
-        examStatuses=jQuery("select[name='examStatus_"+this.gradeState[i].name + '_' + grade.stdId+"']");
+    for (var i = 0; i < this.gradeStates.length; i++) {
+      for (const grade of this.gradeMap.values()) {
+        inputs = jQuery("input[name='"+ grade.stdId + "_" + this.gradeStates[i].gradeTypeId+"']");
+        selects = jQuery("select[name='"+grade.stdId + "_" + this.gradeStates[i].gradeTypeId +"']");
+        examStatuses=jQuery("select[name='"+ grade.stdId + "_" + this.gradeStates[i].gradeTypeId + "_examStatus']");
         if (null != inputs && inputs.length>0) {
           examStatusId=1;
           if(examStatuses.length>0) examStatusId=examStatuses.val();
@@ -60,10 +59,10 @@ function GradeTable() {
     var input = null;
     var inputIndex = 0;
     if (!this.tabByStd) {
-      for(var i = 0; i < this.gradeState.length; i++) {
+      for(var i = 0; i < this.gradeStates.length; i++) {
         for (var j = 0;j < this.gradeArray.length; j++) {
           grade = this.gradeArray[j];
-          input = document.getElementById(this.gradeState[i].name + "_" + (j + 1));
+          input = document.getElementById(this.getScoreInputId(grade,this.gradeStates[j]));
           if (null != input) {
             input.tabIndex = j + i * this.gradeArray.length + 1;
             this.onReturn.elemts[input.tabIndex] = input.name;
@@ -73,10 +72,10 @@ function GradeTable() {
     } else {
       for(var i = 0;i < this.gradeArray.length; i++) {
         grade = this.gradeArray[i];
-        for (var j = 0;j < this.gradeState.length; j++) {
-          input = document.getElementById(this.gradeState[j].name + "_" + (i + 1));
+        for (var j = 0;j < this.gradeStates.length; j++) {
+          input = document.getElementById(this.getScoreInputId(grade,this.gradeStates[j]));
           if (null != input) {
-            input.tabIndex = j + i * this.gradeState.length + 1;
+            input.tabIndex = j + i * this.gradeStates.length + 1;
             this.onReturn.elemts[input.tabIndex] = input.name;
           }
         }
@@ -84,48 +83,57 @@ function GradeTable() {
     }
   }
 
+  this.getScoreInputId = function(grade,gradeState){
+    return grade.stdId +"_" + gradeState.gradeTypeId;
+  }
+
+  this.getExamStatusInputId = function(grade,gradeState){
+    return grade.stdId +"_" + gradeState.gradeTypeId+"_examStatus";
+  }
+
   this.updateEmptyByAbsentStatus=function () {
-    for (var i = 0; i < this.gradeState.length; i++) {
-      for (var j = 0; j < this.gradeArray.length; j++) {
-        grade = this.gradeArray[j];
-        inputs = document.getElementsByName(this.gradeState[i].name + "_" + grade.stdId);
-        var statusElem = document.getElementById("examStatus_" + this.gradeState[i].name + "_" + (j + 1));
+    for (var i = 0; i < this.gradeStates.length; i++) {
+      for (const grade of this.gradeMap.values()) {
+        inputs = document.getElementsByName(this.getScoreInputId(grade,gradeStates[i]));
+        var statusElem = document.getElementById(this.getExamStatusInputId(grade,gradeStates[i]));
         if (null != inputs && inputs.length>0 && null != statusElem && inputs[0].value == "") {
           inputs[0].style.display = "none";
           statusElem.style.display = "block";
-          jQuery('#examStatus_'+inputs[0].id).val(absentStatusId);
+          jQuery('#'+inputs[0].id+"_examStatus").val(absentStatusId);
         }
       }
     }
   }
 
-  this.calcGa = function(index) {
-    if(!this.hasGa)return;
-    var gradeContents = "&grade.std.id=" + this.gradeArray[index-1].stdId + "&grade.courseTakeType.id=" + document.getElementById("courseTakeType_" + index).value;
-    gradeContents += "&grade.project.id=" + document.getElementById("courseTaker_project_" + index).value;
+  this.calcGa = function(stdId) {
+    if(!this.hasGa) return;
+    var grade = this.gradeMap.get(stdId);
+    if(!grade) return;
+
+    var gradeContents = "&grade.std.id=" + grade.stdId + "&grade.courseTakeType.id=" + grade.courseTakeTypeId;
     var myExamStatus=normalExamStatusId;
-    for(var i=0 ;i<this.gradeState.length;i++){
-      state=this.gradeState[i];
+    for(var i=0 ;i<this.gradeStates.length;i++){
+      state=this.gradeStates[i];
       if(!state.inputable) continue;
-      var statePrefix= state.name + "_";
-      examScore=(null == document.getElementById(statePrefix + index) || "" == document.getElementById(statePrefix + index).value ? "" : document.getElementById(statePrefix + index).value);
-      examStatus=normalExamStatusId;
-      if(null!=document.getElementById("examStatus_" + statePrefix + index) && !document.getElementById("examStatus_" + statePrefix + index).disabled){
-         examStatus = document.getElementById("examStatus_"+ statePrefix + index).value;
+      var statePrefix = grade.stdId + "_" +state.gradeTypeId;
+      examScore = (null == document.getElementById(statePrefix) || "" == document.getElementById(statePrefix).value ? "" : document.getElementById(statePrefix).value);
+      examStatus = normalExamStatusId;
+      if(null!=document.getElementById(statePrefix + "_examStatus") && !document.getElementById(statePrefix + "_examStatus").disabled){
+         examStatus = document.getElementById(statePrefix + "_examStatus").value;
       }
       if(examScore!=""||examStatus!=normalExamStatusId){
-        gradeContents += "&examGrade"+ state.id + ".gradeType.id="+ state.id +"&examGrade"+state.id+".score=" + examScore;
-        gradeContents += "&examGrade"+ state.id +".examStatus.id="+examStatus;
+        gradeContents += "&examGrade"+ state.gradeTypeId + ".gradeType.id="+ state.gradeTypeId +"&examGrade"+state.gradeTypeId+".score=" + examScore;
+        gradeContents += "&examGrade"+ state.gradeTypeId +".examStatus.id="+examStatus;
       }
     }
-    var gaTd=document.getElementById("GA_" + index);
+    var gaTd=document.getElementById("GA_" + stdId);
     jQuery.get(this.calcGaUrl+"?gradeStateId="+this.gradeStateId+gradeContents,{},function(data){fillGaScore(gaTd,data);});
   }
 
-  this.add = function(index, stdId, courseTakeTypeId) {
-    var grade = new CourseGrade(index, stdId, courseTakeTypeId, this);
-    this.gradeMap[stdId] = grade;
-    this.gradeArray[index] = grade;
+  this.add = function(stdId, courseTakeTypeId,examGrades) {
+    var grade = new CourseGrade(stdId, courseTakeTypeId, examGrades, this);
+    this.gradeMap.set(stdId,grade);
+    this.gradeArray.push(grade);
     return grade;
   }
 
@@ -134,8 +142,8 @@ function GradeTable() {
     if (0 == precision) {
       for(var i = 0; i < this.gradeArray.length; i++) {
         var grade = this.gradeArray[i];
-        for (var j = 0; j < this.gradeState.length; j++) {
-          input = document.getElementById(this.gradeState[j].name + "_" + (i + 1));
+        for (var j = 0; j < this.gradeStates.length; j++) {
+          input = document.getElementById(this.getScoreInputId(grade, this.gradeStates[j]));
           if (isNotEmpty(input) && isNotEmpty(input.value)) {
             input.value = Math.floor(parseInt(input.value,10));
             grade.gradeTable.calcGa(j + 1);
@@ -146,33 +154,33 @@ function GradeTable() {
   }
 
   this.fireCompare=function(input) {
-    this.gradeMap[input.name.split("_")[1]].fireCompare(input, this);
+    this.gradeMap.get(input.name.split("_")[0]).fireCompare(input, this);
   }
 }
 
-function CourseGrade(index, stdId, courseTakeTypeId, gradeTable) {
-  this.index = index;
+function CourseGrade(stdId, courseTakeTypeId, examGrades, gradeTable) {
   this.stdId = stdId;
   this.courseTakeTypeId = courseTakeTypeId;
   this.gradeTable = gradeTable;
-  this.examGrades = new Object();
+  this.examGrades = examGrades;
 
   this.fireCompare = function (input) {
     var gradeInfos = input.name.split("_");
-    var examType = gradeInfos[0];
+    var stdId =  gradeInfos[0];
+    var gradeType = gradeInfos[1];
     var score = input.value;
     if (null == score) {
       return;
     }
-    if (this.examGrades[examType] == score) {
-      this.gradeTable.calcGa(input.id.split("_")[1]);
+    if (this.examGrades[gradeType] == score) {
+      this.gradeTable.calcGa(stdId);
     } else {
-      if(null != this.examGrades[examType] && this.examGrades[examType]>0) {//0或者空的不做检查
-         if (confirm("成绩录入和上次录入结果不一致!\n第一次录入结果为:" + this.examGrades[examType] + "\n第二次录入结果:" + input.value
+      if(null != this.examGrades[gradeType] && this.examGrades[gradeType]>0) {//0或者空的不做检查
+         if (confirm("成绩录入和上次录入结果不一致!\n第一次录入结果为:" + this.examGrades[gradeType] + "\n第二次录入结果:" + input.value
                + "\n是否要以第二次录入的成绩作为该成绩?")) {
-           this.gradeTable.calcGa(input.id.split("_")[1]);
+           this.gradeTable.calcGa(stdId);
          } else {
-           score = this.gradeTable.valueStyle[this.gradeTable.precision].validator.test(this.examGrades[examType]) ? this.examGrades[examType] : "";
+           score = this.examGrades[gradeType];
            if (this.gradeTable.hasGradeSelect) {
              setSelected(input.value, score);
            } else {
@@ -202,25 +210,28 @@ function alterErrorScore(input, msg) {
   return true;
 }
 
-function checkScore(index, input) {
-  var score = input.value;
+function checkScore(stdId, elem) {
+  var score = elem.value;
   var error = false;
+  if(score != "" && !/^[+-]?(\d+(\.\d*)?|\.\d+)([Ee]-?\d+)?$/.test(score)){
+    error = alterErrorScore(elem, "输入的成绩不是有效的数字");
+  }
   scoreInt = parseInt(score,10);
   var maxScore=100;
   var minScore=0;
   if(score==999){
-    input.value="";
-    jQuery('#examStatus_'+input.id).val(absentStatusId);
-    input.style.display="none";
+    elem.value="";
+    jQuery('#'+elem.id+"_examStatus").val(absentStatusId);
+    elem.style.display="none";
   }else{
-    if (scoreInt > maxScore) error = alterErrorScore(input, "输入成绩不能超过"+ maxScore +"分");
-    if (scoreInt < minScore) error = alterErrorScore(input, "输入成绩不能小于"+ minScore +"分");
+    if (scoreInt > maxScore) error = alterErrorScore(elem, "输入成绩不能超过"+ maxScore +"分");
+    if (scoreInt < minScore) error = alterErrorScore(elem, "输入成绩不能小于"+ minScore +"分");
   }
   if (!error) {
     if (gradeTable.isSecond) {
-      gradeTable.fireCompare(input);
+      gradeTable.fireCompare(elem);
     }
-    gradeTable.calcGa(index);
+    gradeTable.calcGa(stdId);
   }
 }
 
@@ -263,8 +274,8 @@ var time = timeMin * 60;
 var timeElapse = 0;
 function refreshTime() {
   if(document.getElementById("timeElapse")==null){
-  clearInterval(timer);
-  return;
+    clearInterval(timer);
+    return;
   }
   document.getElementById("timeElapse").style.textAlign = "left";
   var sec = timeElapse % 60;
@@ -283,8 +294,8 @@ var timer = setInterval('refreshTime()',1000);
  */
 function changeExamStatus(scoreId,obj){
   if(obj && obj.value != '1'){
-  jQuery("#"+scoreId).val('').hide();
+    jQuery("#"+scoreId).val('').hide();
   }else{
-  jQuery("#"+scoreId).show();
+    jQuery("#"+scoreId).show();
   }
 }

@@ -52,6 +52,7 @@ class GaCalculatorAction extends ActionSupport, EntityAction[CourseGrade] {
 
     grade.semester = clazz.semester
     grade.clazz = Some(clazz)
+    grade.project = clazz.project
     grade.gradingMode = state.gradingMode
 
     codeService.get(classOf[GradeType]) foreach { gradeType =>

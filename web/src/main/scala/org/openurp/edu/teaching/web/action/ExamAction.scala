@@ -20,7 +20,7 @@ package org.openurp.edu.teaching.web.action
 import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.web.action.view.View
-import org.openurp.base.edu.model.Teacher
+import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester}
 import org.openurp.code.edu.model.{ExamStatus, ExamType}
 import org.openurp.edu.exam.model.*
@@ -34,8 +34,9 @@ import scala.collection.mutable
 class ExamAction extends TeacherSupport {
 
   protected override def projectIndex(teacher: Teacher)(using project: Project): View = {
-    put("teacher", teacher)
     val semester = getSemester
+    put("teacher", teacher)
+    put("semester", semester)
 
     val finalType = entityDao.get(classOf[ExamType], ExamType.Final)
     val makeupDelayType = entityDao.get(classOf[ExamType], ExamType.MakeupDelay)

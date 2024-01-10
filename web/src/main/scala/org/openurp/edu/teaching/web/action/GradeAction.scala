@@ -23,7 +23,7 @@ import org.beangle.data.dao.OqlBuilder
 import org.beangle.ems.app.web.WebBusinessLogger
 import org.beangle.security.Securities
 import org.beangle.web.action.view.View
-import org.openurp.base.edu.model.Teacher
+import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester}
 import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.*
@@ -33,10 +33,12 @@ import org.openurp.edu.exam.model.ExamTaker
 import org.openurp.edu.grade.config.GradeInputSwitch
 import org.openurp.edu.grade.model.*
 import org.openurp.edu.grade.service.*
+import org.openurp.edu.service.Features
 import org.openurp.edu.teaching.web.helper.{ClazzGradeReport, GradeInputHelper}
 import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.Instant
+import scala.collection.immutable.Map
 import scala.collection.mutable
 
 class GradeAction extends TeacherSupport {
@@ -195,7 +197,7 @@ class GradeAction extends TeacherSupport {
     given project: Project = clazz.project
 
     val setting = settings.getSetting(clazz.project)
-    val helper = new GradeInputHelper(entityDao, calculator)
+    val helper = new GradeInputHelper(entityDao, calculator, clazzGradeService)
 
     val updatePercent = helper.populatePercent(gradeState, gradeTypes)
     gradeTypes = clazzGradeService.cleanZeroPercents(gradeState, gradeTypes)
@@ -212,6 +214,12 @@ class GradeAction extends TeacherSupport {
     put("gradeState", gradeState)
     put("setting", setting)
     put("clazz", clazz)
+    val inputTwiceEnabled = getConfig(Features.Grade.InputTwice).asInstanceOf[Boolean]
+    if (inputTwiceEnabled) {
+      put("inputComplete", clazzGradeService.isInputComplete(clazz, clazz.enrollment.courseTakers, gradeTypes))
+    }
+    put("inputTwiceEnabled", inputTwiceEnabled)
+    put("secondInput", getBoolean("secondInput", false))
     forward()
   }
 
@@ -223,14 +231,16 @@ class GradeAction extends TeacherSupport {
   def saveGa(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
     val teacher = getTeacher
-    val project = clazz.project
+
+    given project: Project = clazz.project
+
     val gradeState = clazzGradeService.getState(clazz)
     val check = checkEndGaPermission(clazz, teacher, gradeState)
     if (null != check) return check
 
     // 查找成绩
     val submit = !getBoolean("justSave", true)
-    val helper = new GradeInputHelper(entityDao, calculator)
+    val helper = new GradeInputHelper(entityDao, calculator, clazzGradeService)
     val existGradeMap = helper.getGradeMap(clazz, false)
     val setting = settings.getSetting(project)
     val isPublish = setting.submitIsPublish
@@ -254,6 +264,12 @@ class GradeAction extends TeacherSupport {
     // 遍历教学班中的每一个学生
     val takers = helper.getCourseTakers(clazz)
     val gradeTypes = codeService.get(classOf[GradeType], Strings.splitToInt(get("gradeTypeIds", "")): _*).toList
+
+    //如果启用两遍录入，则需要统计提交前是否已经录入了一遍
+    val inputTwiceEnabled = getConfig(Features.Grade.InputTwice).asInstanceOf[Boolean]
+    var beforeInputComplete = false
+    if inputTwiceEnabled then beforeInputComplete = clazzGradeService.isInputComplete(clazz, takers, gradeTypes)
+
     for (taker <- takers) {
       val grade = helper.build(clazz, gradeState, existGradeMap.get(taker.std), taker, gradeTypes, status, updatedAt)
       if (null != grade) grades.addOne(grade)
@@ -280,6 +296,11 @@ class GradeAction extends TeacherSupport {
           params.append("&" + gradeTypeId + "Percent=" + get(gradeTypeId + "Percent", ""))
         }
       }
+    }
+    //如果是启用两遍录入，则需要告诉页面是第二遍录入
+    if (inputTwiceEnabled) {
+      val afterInputComplete = clazzGradeService.isInputComplete(clazz, takers, gradeTypes)
+      if !beforeInputComplete && afterInputComplete then params.append("&secondInput=1")
     }
     businessLogger.info((if (submit) "录入" else "提交") + s"${clazz.crn}的期末总评成绩", clazz.id, Map.empty)
     redirect(if submit then "report" else "inputGa", params.toString, "info.save.success")
@@ -352,8 +373,9 @@ class GradeAction extends TeacherSupport {
     val check = checkPermission(clazz, teacher, gradeState, GradeType.MakeupGa, Grade.Status.Published)
     if (null != check) return check
 
-    val helper = new GradeInputHelper(entityDao, calculator)
-    helper.putGradeMap(clazz, makeupStdStrategy.getCourseTakers(clazz))
+    val helper = new GradeInputHelper(entityDao, calculator, clazzGradeService)
+    val courseTakers = makeupStdStrategy.getCourseTakers(clazz)
+    helper.putGradeMap(clazz, courseTakers)
     helper.buildGradeConfig(clazz, gradeState, gradeTypes)
     put("gradeTypes", gradeTypes)
     putGradeConsts()
@@ -363,20 +385,28 @@ class GradeAction extends TeacherSupport {
     put("gradeState", gradeState)
     put("setting", setting)
     put("clazz", clazz)
+    val inputTwiceEnabled = getConfig(Features.Grade.InputTwice).asInstanceOf[Boolean]
+    if (inputTwiceEnabled) {
+      put("inputComplete", clazzGradeService.isInputComplete(clazz, courseTakers, gradeTypes))
+    }
+    put("inputTwiceEnabled", inputTwiceEnabled)
+    put("secondInput", getBoolean("secondInput", false))
     forward()
   }
 
   def saveMakeup(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
     val teacher = getTeacher
-    val project = clazz.project
+
+    given project: Project = clazz.project
+
     val gradeState = clazzGradeService.getState(clazz)
     val check = checkMakeupGaPermission(clazz, teacher, gradeState)
     if (null != check) return check
 
     // 查找成绩
     val submit = !getBoolean("justSave", true)
-    val helper = new GradeInputHelper(entityDao, calculator)
+    val helper = new GradeInputHelper(entityDao, calculator, clazzGradeService)
     val existGradeMap = helper.getGradeMap(clazz, false)
     val setting = settings.getSetting(project)
     val isPublish = setting.submitIsPublish
@@ -389,6 +419,12 @@ class GradeAction extends TeacherSupport {
     List(GradeType.Makeup, GradeType.MakeupGa, GradeType.Delay, GradeType.DelayGa) foreach { gradeTypeId =>
       gradeTypes.addOne(entityDao.get(classOf[GradeType], gradeTypeId))
     }
+
+    //如果启用两遍录入，则需要统计提交前是否已经录入了一遍
+    val inputTwiceEnabled = getConfig(Features.Grade.InputTwice).asInstanceOf[Boolean]
+    var beforeInputComplete = false
+    if inputTwiceEnabled then beforeInputComplete = clazzGradeService.isInputComplete(clazz, takers, gradeTypes)
+
     for (taker <- takers) {
       val grade = helper.build(clazz, gradeState, existGradeMap.get(taker.std), taker, gradeTypes, status, updatedAt)
       if (null != grade) grades.addOne(grade)
@@ -410,6 +446,11 @@ class GradeAction extends TeacherSupport {
     else
       val params = new StringBuilder("&clazzId=" + clazz.id)
       params.append("&gradeTypeIds=").append(gradeTypes.map(_.id).mkString(","))
+      //如果是启用两遍录入，则需要告诉页面是第二遍录入
+      if (inputTwiceEnabled) {
+        val afterInputComplete = clazzGradeService.isInputComplete(clazz, takers, gradeTypes)
+        if !beforeInputComplete && afterInputComplete then params.append("&secondInput=1")
+      }
       redirect("inputMakeup", params.toString, "info.save.success")
   }
 
@@ -430,7 +471,7 @@ class GradeAction extends TeacherSupport {
     val clazz = entityDao.get(classOf[Clazz], getLong("clazzId").get)
     val grades = entityDao.findBy(classOf[CourseGrade], "clazz", clazz)
     val gradeState = clazzGradeService.getState(clazz)
-    val isEndGa = gradeTypeIds.contains(GradeType.EndGa)
+    val isEndGa = gradeTypeIds.isEmpty || gradeTypeIds.contains(GradeType.EndGa)
     val reports = ClazzGradeReport.build(gradeState, grades, isEndGa, settings.getSetting(clazz.project), 3000)
     put("reports", reports)
     putGradeConsts()
@@ -507,7 +548,7 @@ class GradeAction extends TeacherSupport {
     put("examTakerMap", examTakers)
     put("stateMap", states)
     put("gradeTypes", gradeTypes.sortBy(_.code))
-    forward(if (makeup) "report/blankMakeuptable" else "report/blankGatable")
+    forward(if (makeup) "report/blankMakeup" else "report/blankGa")
   }
 
   /**
@@ -534,14 +575,9 @@ class GradeAction extends TeacherSupport {
   private def checkPermission(clazz: Clazz, teacher: Teacher, gradeState: CourseGradeState, gaGradeTypeId: Int, checkedStatus: Int): View = {
     val msg = checkOwnerPermission(clazz, teacher)
     if null != msg then return forward("500", msg)
-    val gradeInputSwitch = getGradeInputSwitch(clazz.project, clazz.semester)
-    gradeInputSwitch.beginAt = Instant.now().minusSeconds(22222)
-    gradeInputSwitch.endAt = Instant.now().plusSeconds(22222)
-    gradeInputSwitch.types.addOne(getCode(classOf[GradeType], GradeType.EndGa))
-    gradeInputSwitch.types.addOne(getCode(classOf[GradeType], GradeType.End))
-    gradeInputSwitch.types.addOne(getCode(classOf[GradeType], GradeType.Usual))
+    val s = getGradeInputSwitch(clazz.project, clazz.semester)
 
-    if (!gradeInputSwitch.checkOpen(Instant.now)) return redirect("index", "录入尚未开放")
+    if (!s.checkOpen(Instant.now)) return redirect("index", "录入尚未开放")
     if (gradeState.isStatus(new GradeType(gaGradeTypeId), checkedStatus)) {
       redirect("submitResult", "classId=" + clazz.id, "info.save.success")
     } else null

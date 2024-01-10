@@ -26,59 +26,27 @@ import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.*
 import org.openurp.edu.clazz.model.{Clazz, CourseTaker}
 import org.openurp.edu.exam.model.ExamTaker
-import org.openurp.edu.grade.model.{CourseGrade, CourseGradeState, ExamGrade, ExamGradeState}
-import org.openurp.edu.grade.service.{CourseGradeCalculator, GradingModeStrategy}
+import org.openurp.edu.grade.model.*
+import org.openurp.edu.grade.service.{ClazzGradeService, CourseGradeCalculator, GradingModeStrategy}
 
 import java.time.Instant
 
-class GradeInputHelper(private val entityDao: EntityDao, private val calculator: CourseGradeCalculator) {
-  /**
-   * 查询一个教学班中的学生成绩
-   * <p>
-   * 要求能够查询到没有clazz_id的，但是是这个课程的学生的已有成绩（例如其他课程序号、或者免修得来的）。
-   *
-   * @param clazz
-   * @param courseTakers
-   * @return
-   */
-  def getGradeMap(clazz: Clazz, courseTakers: Iterable[CourseTaker], addEmpty: Boolean): Map[Student, CourseGrade] = {
-    if (null == clazz || courseTakers == null || courseTakers.isEmpty) return Map.empty
-    //查找该教学任务的成绩
-    val query1 = OqlBuilder.from(classOf[CourseGrade], "cg").where("cg.clazz = :clazz", clazz)
-    val gradeMap = Collections.newMap[Student, CourseGrade]
-    val grades1 = entityDao.search(query1)
-    var stds = courseTakers.map(_.std).toSet
-    for (grade <- grades1) {
-      gradeMap.put(grade.std, grade)
-      stds -= grade.std
-    }
-    //查找可能出现任务为空，或者别的任务里的该班学生的成绩
-    if (stds.nonEmpty) {
-      val query2 = OqlBuilder.from(classOf[CourseGrade], "cg")
-        .where("cg.project = :project and cg.semester = :semester and cg.course = :course", clazz.project, clazz.semester, clazz.course)
-      query2.where("cg.std in(:stds)", stds)
-      val grades2 = entityDao.search(query2)
-      for (grade <- grades2) {
-        gradeMap.put(grade.std, grade)
-        stds -= grade.std
-      }
-    }
-    if addEmpty && stds.nonEmpty then stds foreach { std => gradeMap.put(std, new CourseGrade) }
-    gradeMap.toMap
-  }
+class GradeInputHelper(private val entityDao: EntityDao, private val calculator: CourseGradeCalculator,val clazzGradeService:ClazzGradeService) {
 
   def getGradeMap(clazz: Clazz, addEmpty: Boolean): Map[Student, CourseGrade] = {
-    getGradeMap(clazz, clazz.enrollment.courseTakers, addEmpty)
+    clazzGradeService.getGrades(clazz, clazz.enrollment.courseTakers, addEmpty)
   }
 
   def getCourseTakers(clazz: Clazz): List[CourseTaker] = {
     clazz.enrollment.courseTakers.sortBy(_.std.code).toList
   }
 
-  def putGradeMap(clazz: Clazz, takers: Iterable[CourseTaker]): Unit = {
+  def putGradeMap(clazz: Clazz, takers: Iterable[CourseTaker]): Map[Student, CourseGrade] = {
     val courseTakers = if null == takers then this.getCourseTakers(clazz) else takers
     ActionContext.current.attribute("courseTakers", courseTakers)
-    ActionContext.current.attribute("gradeMap", getGradeMap(clazz, courseTakers, true))
+    val gradeMap = clazzGradeService.getGrades(clazz, courseTakers, true)
+    ActionContext.current.attribute("gradeMap", gradeMap)
+    gradeMap
   }
 
   /**
@@ -199,9 +167,9 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
    */
   private[helper] def buildExamGrade(grade: CourseGrade, gradeType: GradeType, gradingMode: GradingMode, taker: CourseTaker,
                                      status: Int, percent: Option[Short], updatedAt: Instant, operator: String): Unit = {
-    val scoreInputName = gradeType.id + "_" + taker.std.id
+    val scoreInputName = taker.std.id + "_" + gradeType.id
     val examScoreStr = Params.get(scoreInputName).getOrElse("")
-    var examStatusId = Params.getInt("examStatus_" + scoreInputName).getOrElse(ExamStatus.Normal)
+    var examStatusId = Params.getInt(scoreInputName + "_examStatus").getOrElse(ExamStatus.Normal)
     // 输入值无效
     if (Strings.isBlank(examScoreStr) && ExamStatus.Normal == examStatusId && !(gradeType.id == GradeType.EndGa)) {
       val examGrade = grade.getExamGrade(gradeType).orNull
@@ -221,10 +189,10 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
       examGrade.status = status
       grade.addExamGrade(examGrade)
     }
+    examGrade.status = status
     grade.updatedAt = updatedAt
     examGrade.scorePercent = percent
     examGrade.examStatus = examStatus
-    examGrade.status = status
     calculator.updateScore(examGrade, examScore, gradingMode)
   }
 

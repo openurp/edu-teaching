@@ -1,135 +1,14 @@
 [#ftl]
 [@b.head/]
-<script>
-  var emptyScoreStatuses=[[#list setting.emptyScoreStatuses as s]'${s.id}'[#if s_has_next],[/#if][/#list]];
-</script>
-<script language="JavaScript" type="text/JavaScript" src="${b.base}/static/edu/grade/input.js?ver=20231212"></script>
-[#macro gradeTd(grade, gradeType, courseTaker, index)]
-<td id="TD_${(gradeType.id)!}_${courseTaker.std.id}">
-[#local examStatus=NormalExamStatus/]
-[#--查找考试记录中的考试情况--]
-[#if stdExamTypeMap[courseTaker.std.id + "_" + (gradeType.examType.id)?default("")]??]
-  [#local examTaker=stdExamTypeMap[courseTaker.std.id + "_" + (gradeType.examType.id)]]
-  [#if examTaker.examStatus.id != NormalExamStatus.id]
-    [#local unNormalExamStatus=examTaker.examStatus]
-    [#local examStatus=unNormalExamStatus/]
-  [/#if]
-[/#if]
-
-[#--根据策略是否显示输入框--]
-[#if gradeTypePolicy.isGradeFor(courseTaker,gradeType,examTaker)]
-  [#--判断不能录入考试分数的情况--]
-  [#local couldInput=true/]
-  [#if unNormalExamStatus??]
-    [#list setting.emptyScoreStatuses as s][#if s.id==unNormalExamStatus.id][#local couldInput=false/][#break/][/#if][/#list]
-  [/#if]
-  [#local currentScoreMarkStyle = gradeState.getState(gradeType).gradingMode/]
-  [#if !couldInput]
-    <input type="hidden" value="" id="${(gradeType.id)!}_${index + 1}" name="${(gradeType.id)!}_${courseTaker.std.id}"/>
-    <input type="hidden" value="${unNormalExamStatus.id}" name="examStatus_${(gradeType.id)!}_${courseTaker.std.id}" id="examStatus_${(gradeType.id)!}_${index + 1}"/>
-    ${unNormalExamStatus.name}
-  [#else]
-      [#if (grade.getGrade(gradeType))??] [#local examGrade=grade.getGrade(gradeType)/][/#if]
-      [#if gradeType.id=Delay.id &&  grade.getGrade(Usual)??]
-      平时:${(grade.getGrade(Usual).score)!0}
-      [/#if]
-      [#if currentScoreMarkStyle.numerical]
-          <input type="text" class="text"
-              onfocus="this.style.backgroundColor='yellow'"
-              onblur="this.style.backgroundColor=''"
-              onchange="checkScore(${index + 1}, this);"
-              tabIndex="${index+1}"
-              id="${(gradeType.id)!}_${index + 1}" name="${gradeType.id}_${courseTaker.std.id}"
-          value="[#if grade?string != "null"]${(examGrade.score)!}[/#if]" style="width:40px" maxlength="5" role="gradeInput"/>
-      [#else]
-         <select onfocus="this.style.backgroundColor='yellow'"
-                  onchange="checkScore(${index + 1}, this)"
-                  id="${(gradeType.id)!}_${index + 1}" name="${(gradeType.id)!}_${courseTaker.std.id}"
-                  style="width:70px" role="gradeInput">
-              <option value="">...</option>
-              [#list gradeRateConfigs.get(currentScoreMarkStyle)?sort_by('defaultScore')?reverse as item]
-              <option value="${item.defaultScore}" [#if (examGrade.score)?? && examGrade.score == item.defaultScore ]selected[/#if]>${item.grade}</option>
-            [/#list]
-         </select>
-      [/#if]
-      [#if gradeType.examType?? || (gradeState.getPercent(gradeType)!0)=100]
-      [@b.select label="" items=examStatuses value=((examGrade.examStatus)!examStatus) name="examStatus_" + (gradeType.id)! + "_" + courseTaker.std.id id="examStatus_" + (gradeType.id)! + "_" + (index + 1) style="width:60px;"
-      onchange="changeExamStatus('${(gradeType.id)!}_${index + 1}',this);gradeTable.calcGa(${index + 1});"/]
-      [/#if]
-    [/#if]
-[/#if]
-</td>
-[/#macro]
-
-[#macro displayGrades(index, courseTaker)]
-    <td align="center">${index + 1}</td>
-    <td>${courseTaker.std.code}<input type="hidden" value="${(courseTaker.std.project.id)?if_exists}" id="courseTaker_project_${index + 1}"></td>
-  [#if gradeMap.get(courseTaker.std)??]
-  [#local grade = gradeMap.get(courseTaker.std)]
-  [/#if]
-    <td>
-      ${courseTaker.std.name}[#if courseTaker.takeType != NormalTakeType]<sup>${courseTaker.takeType.name}</sup>[/#if]
-    </td>
-    <script language="javascript">courseGrade = gradeTable.add(${index}, "${courseTaker.std.id}", ${courseTaker.takeType.id});</script>
-    <input type="hidden" id="courseTakeType_${index + 1}" value="${courseTaker.takeType.id}"/>
-
-    [#list gradeTypes as gradeType]
-    <script>courseGrade.examGrades["${(gradeType.id)!}"] = "${(grade.getGrade(gradeType).score)!0}";</script>
-    [#if !gradeType.ga]
-        [#if (grade.getGrade(gradeType).confirmed)!false]
-      <td>${grade.getScoreText(gradeType)!"--"}[#if grade.getGrade(gradeType).examStatus != NormalExamStatus]<sup>${grade.getGrade(gradeType).examStatus.name}</sup>[/#if]</td>
-        [#elseif ((courseTaker.takeType.id)!0)==5]
-        <td>免修</td>
-        [#elseif ((courseTaker.takeType.id)!0)==6]
-        <td>旁听</td>
-        [#else]
-         [@gradeTd grade, gradeType, courseTaker, index/]
-        [/#if]
-    [/#if]
-    [/#list]
-    <td align="center" id="GA_${index + 1}">
-    [#if grade?exists]
-      [#list gradeTypes as gradeType]
-          [#if gradeType.ga && grade.getGrade(gradeType)??]
-            [#local gaGrade=grade.getGrade(gradeType)/]
-            [#if gaGrade.passed]${gaGrade.scoreText!}[#else]<font color="red">${gaGrade.scoreText!}</font>[/#if]
-            [#break/]
-          [/#if]
-      [/#list]
-    [/#if]
-    </td>
-[/#macro]
-
+[#include "inputMacros.ftl"/]
 [@b.toolbar title="教学班成绩录入"]
   bar.addClose();
 [/@]
 [@b.messages slash="6"/]
-<script language="JavaScript">
-  [#assign inputGradeTypes=[]]
-    [#list gradeTypes as g]
-      [#if !g.ga]
-       [#assign inputGradeTypes=inputGradeTypes + [g]]
-       [#if g.id=Delay.id][#assign inputGradeTypes=inputGradeTypes + [Usual]][/#if]
-      [/#if]
-    [/#list]
-    gradeTable = new GradeTable();
-    gradeTable.calcGaUrl="${b.url('ga-calculator')}";
-    [#list inputGradeTypes as gradeType]
-    gradeTable.gradeState[${gradeType_index}] = new Object();
-    gradeTable.gradeState[${gradeType_index}].id = "${(gradeType.id)!}";
-    gradeTable.gradeState[${gradeType_index}].name = "${(gradeType.id)!}";
-    gradeTable.gradeState[${gradeType_index}].scorePercent = ${(gradeState.getPercent(gradeType))?default("null")};
-    gradeTable.gradeState[${gradeType_index}].inputable=true;
-    [/#list]
-
-    gradeTable.precision=${gradeState.scorePrecision};
-    gradeTable.gradeStateId="${gradeState.id}";
-    gradeTable.hasGa=true;
-</script>
 
 <div class="container" style="font-size:0.875rem;">
     <div align="center" style="font-weight:bold">${clazz.project.school.name}课程成绩登记表<br>
-${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0','第')}学期
+     ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0','第')}学期
     </div>
     [#if courseTakers?size == 0]
      <br/>
@@ -156,7 +35,9 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
       </tr>
       <tr style="background-color: #FFFFBB">
         <td>所录成绩:[#list gradeTypes as gradeType]${gradeType.name}&nbsp;[#if (gradeState.getPercent(gradeType))??](${gradeState.getPercent(gradeType)}%)[/#if][/#list]</td>
-        <td>成绩精确度:[#if gradeState.scorePrecision=0]保留到整数[#else]保留${gradeState.scorePrecision}位小数[/#if]</td>
+        <td>成绩精确度:[#if gradeState.scorePrecision=0]保留到整数[#else]保留${gradeState.scorePrecision}位小数[/#if]
+         [#if secondInput]<span style="color:red">第二次录入</span>[/#if]
+        </td>
         <td id="timeElapse"></td>
       </tr>
     </table>
@@ -172,14 +53,15 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
             <td align="center" width="20px">序号</td>
             <td align="center" width="60px">学号</td>
             <td width="40px">姓名</td>
-
             [#list gradeTypes as gradeType]
               [#if !gradeType.ga]
-                [#if i == 1 && gradeState.getState(gradeType)?? && !gradeState.getState(gradeType).confirmed]
+                [#if i == 1 ]
+                  [#assign examGradeTypeCount = examGradeTypeCount + 1/]
+                  [#if gradeState.getState(gradeType)?? && !gradeState.getState(gradeType).confirmed]
                     [#assign canInputedCount = canInputedCount + 1/]
                 [/#if]
-                [#if i == 1][#assign examGradeTypeCount = examGradeTypeCount + 1/][/#if]
-                <td  width="[#if !(gradeType.examType)??]40px[#else]90px[/#if]">${gradeType.name}</td>
+              [/#if]
+              <td  width="[#if !(gradeType.examType)??]40px[#else]90px[/#if]">${gradeType.name}</td>
               [/#if]
             [/#list]
             <td  width="40px">总评/最终</td>
@@ -215,28 +97,22 @@ ${clazz.semester.schoolYear!}学年${(clazz.semester.name)?if_exists?replace('0'
         [#if (canInputedCount > 0 && clazz.enrollment.courseTakers?size > 0)]
          <button class="btn btn-sm btn-outline-info" id="bnJustSave" onclick="justSave(event)" title="剩余部分下次录入"><i class="fa-regular fa-floppy-disk"></i>暂存</button>
          &nbsp;&nbsp;&nbsp;
+         [#--1) 不支持第二遍录入 2) 第二遍录入，已经录完了第一遍了--]
+         [#if !inputTwiceEnabled || inputTwiceEnabled && inputComplete!false]
          <button class="btn btn-sm btn-outline-primary" id="bnSubmit" onclick="return submitSave(event);"><i class="fa-regular fa-floppy-disk"></i>提交</button>
          [/#if]
+        [/#if]
         </td>
       </tr>
     </table>
     [/#if]
 
 </div>
-<script language="JavaScript">
-    gradeTable.changeTabIndex(document.gradeForm,true);
-    jQuery(document).ready(function(){
-      jQuery("input[role='gradeInput']").each(function(){
-        var obj = document.getElementById("examStatus_" + this.id);
-        var scoreId = this.id;
-        changeExamStatus(scoreId,obj);
-      })
-    })
+[@gradeScripts/]
 
-    [#if courseTakers?size != 0]
-        [#if (canInputedCount <= 0)]
-      document.getElementById("timeElapse").innerHTML = "<span style=\"color:red;font-weight:bold;background:yellow;font-size:14pt\">当前成绩录入完成。</span>";
-        [/#if]
-    [/#if]
-</script>
+[#if courseTakers?size != 0 && (canInputedCount <= 0)]
+  <script language="JavaScript">
+    document.getElementById("timeElapse").innerHTML = "<span style=\"color:red;font-weight:bold;background:yellow;font-size:14pt\">当前成绩录入完成。</span>";
+  </script>
+[/#if]
 [@b.foot/]

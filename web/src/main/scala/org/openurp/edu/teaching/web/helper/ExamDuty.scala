@@ -17,7 +17,7 @@
 
 package org.openurp.edu.teaching.web.helper
 
-import org.openurp.base.edu.model.Teacher
+import org.openurp.base.hr.model.Teacher
 import org.openurp.edu.exam.model.{ExamActivity, ExamRoom, PublishState}
 
 enum Duty(val id: Int, val name: String) {

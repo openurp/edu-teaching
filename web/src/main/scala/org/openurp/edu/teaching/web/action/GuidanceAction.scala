@@ -23,17 +23,17 @@ import org.beangle.data.dao.OqlBuilder
 import org.beangle.ems.app.web.WebBusinessLogger
 import org.beangle.security.Securities
 import org.beangle.web.action.view.View
-import org.openurp.base.edu.model.{Course, Teacher, Terms}
+import org.openurp.base.edu.model.{Course, Terms}
+import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester}
 import org.openurp.base.service.TermCalculator
 import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.{CourseTakeType, GradeType, GradingMode}
-import org.openurp.edu.grade.model.{CourseGrade, GaGrade, Grade}
+import org.openurp.edu.grade.model.{CourseGrade, Grade}
 import org.openurp.edu.grade.service.CourseGradeCalculator
 import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.Instant
-import scala.collection.mutable
 
 /**
  * 导师指导学生的主课成绩录入

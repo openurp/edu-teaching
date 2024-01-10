@@ -34,7 +34,7 @@ import org.beangle.web.action.support.ActionSupport
 import org.beangle.web.action.view.{Status, View}
 import org.beangle.web.servlet.util.RequestUtils
 import org.beangle.webmvc.support.helper.PopulateHelper
-import org.openurp.base.edu.model.Teacher
+import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.User
 import org.openurp.base.service.{Features, ProjectConfigService}
 import org.openurp.base.std.model.Student

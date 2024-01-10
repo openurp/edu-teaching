@@ -22,7 +22,7 @@
         [#assign totalNormal=totalNormal + 1 /] [#assign totalNormalScore=totalNormalScore+(examGrade.courseGrade.getGrade(EndGa).score)!0/]
       [/#if]
     [/#list]
-    <table align="center" class="reportBody" width="95%">
+    <table  class="reportBody" width="95%">
        [@reportColumnTitle report/]
        [#list 0..(perRecordOfPage / 2 - 1) as onePageRecordIndex]
        <tr>
