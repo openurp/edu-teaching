@@ -24,8 +24,7 @@ import org.beangle.commons.lang.time.HourMinute
 import org.beangle.commons.lang.{ClassLoaders, Strings}
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.data.transfer.Format
-import org.beangle.data.transfer.excel.{ExcelTemplateExporter, ExcelTemplateWriter}
-import org.beangle.data.transfer.exporter.ExportContext
+import org.beangle.data.transfer.exporter.{ExcelTemplateExporter, ExportContext}
 import org.beangle.ems.app.{Ems, EmsApp}
 import org.beangle.security.Securities
 import org.beangle.template.freemarker.ProfileTemplateLoader
@@ -227,13 +226,10 @@ class ClazzAction extends ActionSupport {
     val clazz = getClazz(teacher)
     val toSheet = getBoolean("excel", false)
     if (toSheet) {
-      val context = new ExportContext
+      val context = new ExportContext(Format.Xlsx)
       val response = ActionContext.current.response
-      context.format = Format.Xlsx
       context.exporter = new ExcelTemplateExporter()
-      context.writer = new ExcelTemplateWriter(
-        ClassLoaders.getResource("org/openurp/edu/teaching/components/rollbook.xlsx").get, context,
-        response.getOutputStream)
+      context.template = ClassLoaders.getResource("org/openurp/edu/teaching/components/rollbook.xlsx").get
       RequestUtils.setContentDisposition(response, clazz.crn + "点名册.xlsx")
 
       val stds = clazz.enrollment.courseTakers.map(_.std).sortBy(_.code)
@@ -269,7 +265,7 @@ class ClazzAction extends ActionSupport {
       context.put("creditText", creditText)
       context.put("directions", directions)
       context.put("tutors", tutors)
-      context.exporter.exportData(context, context.writer)
+      context.writeTo(response.getOutputStream)
       Status.Ok
     } else {
       put("schedule", ScheduleDigestor.digest(clazz, ":day :units :weeks :room"))

@@ -170,12 +170,12 @@ table.reportFoot.tr {
   </table>
 [/#macro]
 
-[#macro displayGaTake(courseTakers, objectIndex)]
+[#macro displayGaTaker(courseTakers, objectIndex)]
 [#if courseTakers[objectIndex]??]
-    [#assign courseTaker = courseTakers[objectIndex] /]
-    <td class="columnIndex">${objectIndex + 1}</td>
-    <td>${courseTaker.std.code!}</td>
-    <td>${courseTaker.std.name!}[#if courseTaker.takeType?exists && courseTaker.takeType.id != 1]<sup>${courseTaker.takeType.name}</sup>[/#if]</td>
+  [#assign courseTaker = courseTakers[objectIndex] /]
+  <td class="columnIndex">${objectIndex + 1}</td>
+  <td>${courseTaker.std.code!}</td>
+  <td>${courseTaker.std.name!}[#if courseTaker.takeType?exists && courseTaker.takeType.id != 1]<sup>${courseTaker.takeType.name}</sup>[/#if]</td>
 
   [#if courseTaker.takeType.id==5]
     <td colspan="${gradeTypes?size}">[#if courseGrades.get(courseTaker.std)??]${courseGrades.get(courseTaker.std).remark!}[/#if]</td>
@@ -192,45 +192,45 @@ table.reportFoot.tr {
     [/#list]
   [/#if]
 [#else]
-    <td class="columnIndex"></td>
-    <td></td>
-    <td></td>
-    [#list gradeTypes as gradeType]
-    <td></td>
-    [/#list]
+  <td class="columnIndex"></td>
+  <td></td>
+  <td></td>
+  [#list gradeTypes as gradeType]
+  <td></td>
+  [/#list]
 [/#if]
 [/#macro]
 
-[#macro displayMakeupTake(courseTakers, objectIndex)]
+[#macro displayMakeupTaker(courseTakers, objectIndex)]
 [#if courseTakers[objectIndex]??]
-    [#assign courseTaker = courseTakers[objectIndex]/]
-     [#local cg =courseGrades.get(courseTaker.std)]
-     [#local et =examTakers.get(courseTaker.std)]
-    <td class="columnIndex">${objectIndex + 1}</td>
-    <td>${courseTaker.std.code!}</td>
-    <td>${courseTaker.std.name!}[#if courseTaker.takeType?exists && courseTaker.takeType.id != 1]<sup>${courseTaker.takeType.name}</sup>[/#if]</td>
-    <td>${courseTaker.takeType.name}</td>
-    <td>
-    [#if et.examType.name?index_of('缓')> -1]
-    ${(courseGrades.get(courseTaker.std).getScoreText(Usual))!}
-    [#else]
-    --
-    [/#if]
-    </td>
-    <td></td>
-    <td></td>
-    <td style="font-size:0.8em">
-     [#if et.examType.name?index_of('缓')> -1] 缓考[#t]
-     [#else]
-       [#if ((cg.getExamGrade(End).examStatus.id)!0) != 1]
-        ${(cg.getExamGrade(End).examStatus.name)!}[#t]
-       [#else]不及格[#t]
-       [/#if][#t]
-     [/#if]
-    </td>
+  [#assign courseTaker = courseTakers[objectIndex]/]
+  [#local cg =courseGrades.get(courseTaker.std)!]
+  [#local et =examTakers.get(courseTaker.std)]
+  <td class="columnIndex">${objectIndex + 1}</td>
+  <td>${courseTaker.std.code!}</td>
+  <td>${courseTaker.std.name!}[#if courseTaker.takeType?exists && courseTaker.takeType.id != 1]<sup>${courseTaker.takeType.name}</sup>[/#if]</td>
+  <td>${courseTaker.takeType.name}</td>
+  <td>
+  [#if et.examType.name?index_of('缓')> -1]
+  ${(courseGrades.get(courseTaker.std).getScoreText(Usual))!}
+  [#else]
+  --
+  [/#if]
+  </td>
+  <td></td>
+  <td></td>
+  <td style="font-size:0.8em">
+   [#if et.examType.name?index_of('缓')> -1] 缓考[#t]
+   [#else]
+     [#if ((cg.getExamGrade(End).examStatus.id)!0) != 1]
+      ${(cg.getExamGrade(End).examStatus.name)!}[#t]
+     [#else]不及格[#t]
+     [/#if][#t]
+   [/#if]
+  </td>
 [#else]
-    <td class="columnIndex"></td>
-    [#list 1..7 as i]<td></td>[/#list]
+  <td class="columnIndex"></td>
+  [#list 1..7 as i]<td></td>[/#list]
 [/#if]
 [/#macro]
 

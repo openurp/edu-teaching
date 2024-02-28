@@ -20,8 +20,8 @@
        [@gaColumnTitle/]
        [#list 0..(perRecordOfPage / 2 - 1) as onePageRecordIndex]
        <tr>
-    [@displayGaTake courseTakers, recordIndex/]
-    [@displayGaTake courseTakers, recordIndex + perRecordOfPage / 2/]
+    [@displayGaTaker courseTakers, recordIndex/]
+    [@displayGaTaker courseTakers, recordIndex + perRecordOfPage / 2/]
         [#assign recordIndex = recordIndex + 1/]
        </tr>
        [/#list]
