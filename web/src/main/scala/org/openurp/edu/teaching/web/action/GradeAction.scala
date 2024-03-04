@@ -33,6 +33,7 @@ import org.openurp.edu.exam.model.ExamTaker
 import org.openurp.edu.grade.config.GradeInputSwitch
 import org.openurp.edu.grade.model.*
 import org.openurp.edu.grade.service.*
+import org.openurp.edu.grade.service.stat.GradeSegStat
 import org.openurp.edu.service.Features
 import org.openurp.edu.teaching.web.helper.{ClazzGradeReport, GradeInputHelper}
 import org.openurp.starter.web.support.TeacherSupport
@@ -478,6 +479,10 @@ class GradeAction extends TeacherSupport {
     forward(if isEndGa then "report/reportGa" else "report/reportMakeup")
   }
 
+  /** 空白成绩登分表
+   *
+   * @return
+   */
   def blank(): View = {
     val clazzes = entityDao.find(classOf[Clazz], getLongIds("clazz"))
 
@@ -549,6 +554,48 @@ class GradeAction extends TeacherSupport {
     put("stateMap", states)
     put("gradeTypes", gradeTypes.sortBy(_.code))
     forward(if (makeup) "report/blankMakeup" else "report/blankGa")
+  }
+
+  def examAnalysis(): View = {
+    val clazz = entityDao.get(classOf[Clazz], getLongId("clazz"))
+    val grades = entityDao.findBy(classOf[CourseGrade], "clazz", clazz)
+    val gradeType = entityDao.get(classOf[GradeType], GradeType.End)
+    val stats = GradeSegStat.stat(grades, List(gradeType), GradeSegStat.getDefaultSegments)
+    put("clazz", clazz)
+    put("stats", stats)
+    val analysis = entityDao.findBy(classOf[ExamAnalysis], "clazz", clazz)
+    put("analysis", analysis.headOption)
+    forward()
+  }
+
+  def examReport(): View = {
+    val clazz = entityDao.get(classOf[Clazz], getLongId("clazz"))
+    val teacher = getTeacher
+    assert(clazz.teachers.contains(teacher))
+    val grades = entityDao.findBy(classOf[CourseGrade], "clazz", clazz)
+    val gradeType = entityDao.get(classOf[GradeType], GradeType.End)
+    val stats = GradeSegStat.stat(grades, List(gradeType), GradeSegStat.getDefaultSegments)
+    put("stats", stats)
+    put("clazz", clazz)
+    var analysis = entityDao.findBy(classOf[ExamAnalysis], "clazz", clazz).headOption
+    get("analysisContents") foreach { c =>
+      if (analysis.isEmpty) {
+        val n = new ExamAnalysis
+        n.clazz = clazz
+        n.updatedAt = Instant.now
+        n.contents = c
+        entityDao.saveOrUpdate(n)
+        analysis = Some(n)
+      } else {
+        analysis.head.contents = c
+      }
+    }
+    if (analysis.isEmpty) {
+      forward("examAnalysis")
+    } else {
+      put("analysis", analysis)
+      forward()
+    }
   }
 
   /**
