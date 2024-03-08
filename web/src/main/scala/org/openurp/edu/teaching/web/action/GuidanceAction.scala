@@ -20,6 +20,7 @@ package org.openurp.edu.teaching.web.action
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.Strings
 import org.beangle.data.dao.OqlBuilder
+import org.beangle.ems.app.Ems
 import org.beangle.ems.app.web.WebBusinessLogger
 import org.beangle.security.Securities
 import org.beangle.web.action.view.View
@@ -76,6 +77,7 @@ class GuidanceAction extends TeacherSupport {
         put("gradeMap", Map.empty)
       }
     }
+    put("EmsApi", Ems.api)
     forward()
   }
 
@@ -123,6 +125,8 @@ class GuidanceAction extends TeacherSupport {
   private def getStds(teacher: Teacher, semester: Semester): Seq[Student] = {
     val stdQuery = OqlBuilder.from(classOf[Student], "std").where("std.tutor=:me or std.advisor=:me", teacher)
     stdQuery.where("std.beginOn < :endOn and :beginOn < std.endOn", semester.endOn, semester.beginOn)
+    stdQuery.where("exists(from std.states s where s.inschool=true and s.beginOn <= :endOn and :beginOn <= s.endOn)",
+      semester.endOn, semester.beginOn)
     stdQuery.orderBy("std.state.grade.code,std.code")
     entityDao.search(stdQuery)
   }
@@ -200,7 +204,8 @@ class GuidanceAction extends TeacherSupport {
         }
       }
     }
-    redirect("index", s"semester.id=${semester.id}", "info.save.success")
+    val toSemesterId = getInt("toSemester.id").getOrElse(semester.id)
+    redirect("index", s"semester.id=${toSemesterId}", "info.save.success")
   }
 }
 

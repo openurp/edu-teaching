@@ -52,7 +52,7 @@
       [/#if]
       [#if gradeType.examType?? || (gradeState.getPercent(gradeType)!0)=100]
       [@b.select label="" items=examStatuses value=((examGrade.examStatus)!examStatus)
-        name=courseTaker.std.id+"_"+gradeType.id+"_examStatus" name=courseTaker.std.id+"_"+gradeType.id+"_examStatus" style="width:60px;"
+        id=courseTaker.std.id+"_"+gradeType.id+"_examStatus" name=courseTaker.std.id+"_"+gradeType.id+"_examStatus" style="width:60px;"
         onchange="changeExamStatus('${courseTaker.std.id}_${gradeType.id}',this);gradeTable.calcGa('${courseTaker.std.id}');"/]
       [/#if]
     [/#if]
@@ -97,7 +97,7 @@
 [/#macro]
 
 [#macro gradeScripts]
-<script language="JavaScript" type="text/JavaScript" src="${b.base}/static/edu/grade/input.js?ver=20231217"></script>
+<script language="JavaScript" type="text/JavaScript" src="${b.base}/static/edu/grade/input.js?ver=20241217"></script>
 <script language="JavaScript">
   var emptyScoreStatuses=[[#list setting.emptyScoreStatuses as s]'${s.id}'[#if s_has_next],[/#if][/#list]];
   [#assign inputGradeTypes=[]]

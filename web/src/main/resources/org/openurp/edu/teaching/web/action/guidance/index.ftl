@@ -2,6 +2,7 @@
 <style>
 @media only screen and  (max-width: 760px) {
   .pc-tips{display: none; }
+  .semester-bar{display:none;}
   td, tr { display: block; }
   /* Hide table headers (but not display: none;, for accessibility) */
   thead tr {
@@ -25,12 +26,52 @@
     white-space: nowrap;
   }
 }
+@media only screen and  (min-width: 761px) {
+  #normal_semester_select {display:none;}
+}
 </style>
 <div class="container-fluid">
   [@b.toolbar title="${semester.schoolYear}学年度${semester.name}学期 主课及学位论文指导成绩"/]
   [@b.messages slash="3"/]
-  [@base.semester_bar value=semester! formName='courseTableForm'/]
 
+  [@base.semester_bar value=semester! formName='courseTableForm'/]
+  <div id="normal_semester_select">
+    <label for="semester_select">学年学期</label>
+    <select name="semester.id" id="semester_select" value=semester.id label="学年学期" onchange="changeSemester(this.value)">
+    </select>
+  </div>
+  <script>
+  function changeSemester(semesterId){
+    var form = document.gradeForm;
+    if(confirm("需要保存成绩吗?")){
+      bg.form.addInput(form,"toSemester.id",semesterId);
+      bg.form.submit(form);
+    }else{
+      bg.form.addInput(form,"semester.id",semesterId);
+      form.action="${b.url('!index')}";
+      bg.form.submit(form);
+    }
+  }
+  jQuery.ajax({
+    url: "${EmsApi}/base/semesters/${project.id}.json",
+    headers:{"Accept":"application/json"},
+    success: function(obj){
+      var is_restapi = Array.isArray(obj);
+      var datas = is_restapi?obj:obj.data;
+      var select = $("#semester_select")
+      var cnt=0;
+      for(var i in datas){
+        cnt += 1;
+        var data = datas[i], value = data.id;
+        var schoolYear = is_restapi?data.schoolYear:data.attributes.schoolYear
+        var name = is_restapi?data.name:data.attributes.name
+        var title=schoolYear+"学年度"+name+"学期"
+        select.append('<option value="'+value+'" title="'+title+'">'+title+'</option>');
+      }
+      select.val("${semester.id}")
+    }
+  });
+  </script>
   <div class="card card-info card-primary card-outline text-sm">
     <div class="card-header">
       <h3 class="card-title">${teacher.name}的学生和课程

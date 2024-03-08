@@ -94,8 +94,8 @@ function GradeTable() {
   this.updateEmptyByAbsentStatus=function () {
     for (var i = 0; i < this.gradeStates.length; i++) {
       for (const grade of this.gradeMap.values()) {
-        inputs = document.getElementsByName(this.getScoreInputId(grade,gradeStates[i]));
-        var statusElem = document.getElementById(this.getExamStatusInputId(grade,gradeStates[i]));
+        inputs = document.getElementsByName(this.getScoreInputId(grade,this.gradeStates[i]));
+        var statusElem = document.getElementById(this.getExamStatusInputId(grade,this.gradeStates[i]));
         if (null != inputs && inputs.length>0 && null != statusElem && inputs[0].value == "") {
           inputs[0].style.display = "none";
           statusElem.style.display = "block";

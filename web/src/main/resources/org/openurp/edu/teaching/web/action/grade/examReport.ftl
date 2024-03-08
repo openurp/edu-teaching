@@ -20,7 +20,7 @@ table.reportTable td{
   border-color:black;
 }
 </style>
-<div class="container" style="font-size:15px;">
+<div class="container" style="font-size:18px;">
     <div align='center'><h4>${clazz.project.school.name}课程考核试卷分析表</h4></div>
     <div align='center' style="font-weight:bold;">(${clazz.semester.schoolYear}学年 [#if clazz.semester.name='1']第一学期[#elseif clazz.semester.name='2']第二学期[#else]${clazz.semester.name}[/#if])</div><br>
     <table align="center" width="100%" border='0'>
@@ -70,42 +70,44 @@ table.reportTable td{
        <tr>
          <td colspan="8">
 二、综合分析（要求字数不少于200）：<br>
+<div style="font-size:0.8em">
 1.考卷内容分析（可从考核重点、题型、题量、难易度、覆盖面等说明）<br>
 2.学生答卷情况分析（可从学生较易得分、较难得分，学生的答卷与教师期望的差别等方面说明）<br>
 3.按教学大纲提高课堂教学质量的对策<br>
 4.进一步提高命题质量的措施
+</div>
          </td>
        </tr>
        <tr>
         <td colspan="8">
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-color:white">
           <tr valign="top">
-            <td height="380" style="border-color:white;white-space: pre-wrap;">${(analysis.contents)!""}</td>
+            <td height="380" style="border-color:white;white-space: pre-wrap;padding: 5px 5px;">${(analysis.contents)!""}</td>
           </tr>
         </table>
-        <div align="right">授课老师签名：<U>[#list 1..30 as  i]&nbsp;[/#list]</U></div>
-        <div align="right">日期：<U>[#list 1..30 as  i]&nbsp;[/#list]</U></div>
+        <div style="text-align:right;">授课老师签名：<U style="font-size:1.4rem;">[#list 1..25 as  i]&nbsp;[/#list]</U></div>
+        <div align="right">日期：<U style="font-size:1.4rem;">[#list 1..25 as  i]&nbsp;[/#list]</U></div>
         </td>
        </tr>
      </table>
      [/#list]
    [#assign segmentSize= stats?first.segments?size/]
-     <table align="center" width="100%" border='0' style="font-size:15px;">
+     <table align="center" width="100%" border='0'>
       <tr>
-       <td style="vertical-align: top;">
+       <td style="vertical-align: top;font-size:0.8em;">
        注：
         <div style="margin-left: 20px;">
           1.每个课程序号（教学班）需制作一份试卷分析。<br>
           2.同一课程代码但有多个课程序号（教学班）的，不需要制作总的试卷分析。<br>
-          3.本表填写完成后可一式三份双面打印，一份由教研室留存，两份与试卷一起归档至教务处试卷库。
+          3.本表填写完成后可一式三份双面打印，一份由教研室留存，两份与试卷<br>一起归档至教务处试卷库。
         </div>
       </td>
        <td>
-        <div style="margin-top:10px">
-          <div align="right">教研室主任签字：<U>[#list 1..30 as  i]&nbsp;[/#list]</U></div>
-          <div align="right">日期：<U>[#list 1..30 as  i]&nbsp;[/#list]</U></div>
-          <div align="right">院、部领导审核签字：<U>[#list 1..30 as  i]&nbsp;[/#list]</U></div>
-          <div align="right">日期：<U>[#list 1..30 as  i]&nbsp;[/#list]</U></div>
+        <div style="margin-top:10px;">
+          <div style="text-align:right;">教研室主任签字：<U style="font-size:1.8rem;">[#list 1..20 as  i]&nbsp;[/#list]</U></div>
+          <div style="text-align:right;">日期：<U style="font-size:1.8rem;">[#list 1..20 as i]&nbsp;[/#list]</U></div>
+          <div style="text-align:right;">院、部领导审核签字：<U style="font-size:1.8rem;">[#list 1..20 as  i]&nbsp;[/#list]</U></div>
+          <div style="text-align:right;">日期：<U style="font-size:1.8rem;">[#list 1..20 as  i]&nbsp;[/#list]</U></div>
         </div>
        </td>
       </tr>

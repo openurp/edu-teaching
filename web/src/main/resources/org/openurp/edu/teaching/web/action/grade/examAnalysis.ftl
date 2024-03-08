@@ -16,8 +16,19 @@
     [/#list]
     [/#list]
   [/@]
-  [@b.textarea name="analysisContents" label="综合分析" value=(analysis.contents)! rows="15" cols="90" maxlength="500"
+  [@b.field label="综合分析方向"]
+    <div style="white-space: pre-wrap;margin-left:100px">1.考卷内容分析（可从考核重点、题型、题量、难易度、覆盖面等说明）
+2.学生答卷情况分析（可从学生较易得分、较难得分，学生的答卷与教师期望的差别等方面说明）
+3.按教学大纲提高课堂教学质量的对策
+4.进一步提高命题质量的措施</div>
+  [/@]
+  [@b.textarea name="analysisContents" label="综合分析内容" value=(analysis.contents)! rows="15" cols="90" maxlength="800"
    comment="不少于200字"/]
+  [@b.field label="注意事项"]
+    <div style="white-space: pre-wrap;margin-left:100px">1.每个课程序号（教学班）需制作一份试卷分析。
+2.同一课程代码但有多个课程序号（教学班）的，不需要制作总的试卷分析。
+3.本表填写完成后可一式三份双面打印，一份由教研室留存，两份与试卷一起归档至教务处试卷库。</div>
+  [/@]
   [@b.formfoot]
     <input type="hidden" name="clazzId" value="${clazz.id}"/>
     [@b.submit value="保存"/]
