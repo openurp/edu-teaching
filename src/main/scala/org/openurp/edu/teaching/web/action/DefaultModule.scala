@@ -15,26 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.openurp.edu.grade.config
+package org.openurp.edu.teaching.web.action
 
-import org.beangle.data.orm.{IdGenerator, MappingModule}
+import org.beangle.cdi.bind.BindModule
 
-class DefaultMapping extends MappingModule {
+class DefaultModule extends BindModule {
 
-  def binding(): Unit = {
-    bind[GradeRateConfig].declare { e =>
-      e.gradingMode is notnull
-      e.items is depends("config")
-    }
+  override def binding(): Unit = {
+    bind(classOf[CoursetableAction])
+    bind(classOf[ClazzAction])
 
-    bind[GradeRateItem].declare { e =>
-      e.config is notnull
-    }
+    bind(classOf[GradeAction])
+    bind(classOf[ExamAction])
+    bind(classOf[PlanAction])
 
-    bind[GradeInputSwitch]
-
-    bind[TranscriptTemplate]
-
-    all.cacheAll()
+    bind(classOf[GuidanceAction])
+    bind(classOf[GaCalculatorAction])
   }
 }

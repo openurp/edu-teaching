@@ -23,32 +23,20 @@ ThisBuild / developers := List(
 ThisBuild / description := "OpenURP Edu Teaching"
 ThisBuild / homepage := Some(url("http://openurp.github.io/edu-teaching/index.html"))
 
-val apiVer = "0.37.3-SNAPSHOT"
-val starterVer = "0.3.24"
-val baseVer = "0.4.20"
-val eduCoreVer = "0.0.20-SNAPSHOT"
+val apiVer = "0.37.3"
+val starterVer = "0.3.27"
+val baseVer = "0.4.21-SNAPSHOT"
+val eduCoreVer = "0.2.1-SNAPSHOT"
 val openurp_edu_api = "org.openurp.edu" % "openurp-edu-api" % apiVer
 val openurp_stater_web = "org.openurp.starter" % "openurp-starter-web" % starterVer
 val openurp_base_tag = "org.openurp.base" % "openurp-base-tag" % baseVer
 val openurp_edu_core = "org.openurp.edu" % "openurp-edu-core" % eduCoreVer
 
 lazy val root = (project in file("."))
-  .settings()
-  .aggregate(web, webapp)
-
-lazy val web = (project in file("web"))
+  .enablePlugins(WarPlugin, TomcatPlugin)
   .settings(
-    name := "openurp-edu-teaching-web",
+    name := "openurp-edu-teaching-webapp",
     common,
     libraryDependencies ++= Seq(openurp_stater_web, openurp_edu_core),
     libraryDependencies ++= Seq(openurp_edu_api, beangle_ems_app, openurp_base_tag)
   )
-
-lazy val webapp = (project in file("webapp"))
-  .enablePlugins(WarPlugin, TomcatPlugin)
-  .settings(
-    name := "openurp-edu-teaching-webapp",
-    common
-  ).dependsOn(web)
-
-publish / skip := true

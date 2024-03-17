@@ -59,7 +59,7 @@ class GuidanceAction extends TeacherSupport {
       val groupTerms = Collections.newMap[String, Int]
       val termCalculator = new TermCalculator(project, semester, entityDao)
       for (std <- stds; group <- groups) {
-        val term = termCalculator.getTerm(std.grade, true)
+        val term = calcTerm(std, semester)
         if (group.contains(term)) {
           groupTerms.put(s"${std.id}_${group.name}", term)
           activeStds.add(std)
@@ -79,6 +79,27 @@ class GuidanceAction extends TeacherSupport {
     }
     put("EmsApi", Ems.api)
     forward()
+  }
+
+  /** 计算给定学期是学生的第几个学期
+   * @param std
+   * @param semester
+   * @return
+   */
+  private def calcTerm(std: Student, semester: Semester): Int = {
+    val project = std.project
+
+    val sp = semesterService.get(project, std.beginOn, semester.endOn)
+    val semesters = Collections.newBuffer[Semester]
+    semesters ++= sp._1
+    semesters ++= sp._2
+    var notinschool = 0
+    semesters foreach { s =>
+      val beginOn = s.beginOn.plusDays(20)
+      val endOn = s.endOn.minusDays(20)
+      if (!std.states.exists(x => x.beginOn.isBefore(endOn) && beginOn.isBefore(x.endOn) && x.inschool)) notinschool += 1
+    }
+    semesters.size - notinschool
   }
 
   private def getGrades(project: Project, semester: Semester, courses: Iterable[Course], stds: Iterable[Student]): Seq[CourseGrade] = {
