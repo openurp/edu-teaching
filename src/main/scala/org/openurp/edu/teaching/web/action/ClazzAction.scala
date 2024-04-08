@@ -23,8 +23,8 @@ import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.time.HourMinute
 import org.beangle.commons.lang.{ClassLoaders, Strings}
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
-import org.beangle.data.transfer.Format
-import org.beangle.data.transfer.exporter.{ExcelTemplateExporter, ExportContext}
+import org.beangle.doc.transfer.Format
+import org.beangle.doc.transfer.exporter.{ExcelTemplateExporter, ExportContext}
 import org.beangle.ems.app.{Ems, EmsApp}
 import org.beangle.security.Securities
 import org.beangle.template.freemarker.ProfileTemplateLoader
@@ -37,7 +37,7 @@ import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.User
 import org.openurp.base.service.{Features, ProjectConfigService}
 import org.openurp.base.std.model.Student
-import org.openurp.code.edu.model.{TeachingMethod, TeachingNature}
+import org.openurp.code.edu.model.{TeachingForm, TeachingMethod, TeachingNature}
 import org.openurp.edu.attendance.model.StdLeaveLesson
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
@@ -46,7 +46,7 @@ import org.openurp.edu.clazz.service.ClazzMaterialService
 import org.openurp.edu.schedule.service.ScheduleDigestor
 
 import java.io.InputStream
-import java.time.{Instant, LocalDate, ZoneId}
+import java.time.{Instant, LocalDate}
 import java.util
 import java.util.Locale
 import scala.collection.mutable
@@ -76,23 +76,21 @@ class ClazzAction extends ActionSupport {
     put("clazzes", clazzProvider.getClazzes(clazz.semester, teacher, clazz.project))
     put("tutorSupported", configService.get(clazz.project, Features.Std.TutorSupported))
 
-    val lessons = Collections.newBuffer[(Instant, Instant)]
-    clazz.schedule.activities.foreach { a =>
-      a.time.dates foreach { d =>
-        val s1 = d.atTime(a.time.beginAt.hour, a.time.beginAt.minute).atZone(ZoneId.systemDefault()).toInstant
-        val s2 = d.atTime(a.time.endAt.hour, a.time.endAt.minute).atZone(ZoneId.systemDefault()).toInstant
-        lessons.addOne((s1, s2))
-      }
-    }
-    if (lessons.nonEmpty) {
-      val q1 = OqlBuilder.from(classOf[StdLeaveLesson], "sll")
-      q1.where("sll.clazz=:clazz", clazz)
-      q1.orderBy("sll.std.code,sll.lessonOn")
-      val stdLeaveLessons = entityDao.search(q1)
+    //    val lessons = Collections.newBuffer[(Instant, Instant)]
+    //    clazz.schedule.activities.foreach { a =>
+    //      a.time.dates foreach { d =>
+    //        val s1 = d.atTime(a.time.beginAt.hour, a.time.beginAt.minute).atZone(ZoneId.systemDefault()).toInstant
+    //        val s2 = d.atTime(a.time.endAt.hour, a.time.endAt.minute).atZone(ZoneId.systemDefault()).toInstant
+    //        lessons.addOne((s1, s2))
+    //      }
+    //    }
+    val q1 = OqlBuilder.from(classOf[StdLeaveLesson], "sll")
+    q1.where("sll.clazz=:clazz", clazz)
+    q1.orderBy("sll.std.code,sll.lessonOn")
+    val stdLeaveLessons = entityDao.search(q1)
 
-      val stdLeaveStats = stdLeaveLessons.groupBy(x => x.std).map(x => new StdLeaveStat(x._1, x._2))
-      put("stdLeaveStats", stdLeaveStats.toBuffer.sortBy(_.std.code))
-    }
+    val stdLeaveStats = stdLeaveLessons.groupBy(x => x.std).map(x => new StdLeaveStat(x._1, x._2))
+    put("stdLeaveStats", stdLeaveStats.toBuffer.sortBy(_.std.code))
     forward()
   }
 
@@ -348,8 +346,8 @@ class ClazzAction extends ActionSupport {
         lesson.units = time.units.toBuffer.sorted.mkString(",")
         lesson.idx = i
         i += 1
-        lesson.teachingNature = entityDao.get(classOf[TeachingNature], TeachingNature.Theory)
-        lesson.teachingMethod = entityDao.get(classOf[TeachingMethod], TeachingMethod.Offline)
+        lesson.nature = entityDao.get(classOf[TeachingNature], TeachingNature.Theory)
+        lesson.form = entityDao.get(classOf[TeachingForm], TeachingForm.Offline)
         lesson.contents = " "
         tp.lessons += lesson
       }
@@ -377,7 +375,7 @@ class ClazzAction extends ActionSupport {
       this.openOn = d
       this.beginAt = ca.time.beginAt
       this.endAt = ca.time.endAt
-      this.places = ca.places
+      this.places = Some(ca.rooms.map(_.name).mkString(" "))
       (ca.beginUnit.toInt to ca.endUnit.toInt) foreach { u => units.addOne(u) }
     }
 

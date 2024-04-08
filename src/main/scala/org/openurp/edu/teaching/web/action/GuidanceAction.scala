@@ -82,6 +82,7 @@ class GuidanceAction extends TeacherSupport {
   }
 
   /** 计算给定学期是学生的第几个学期
+   *
    * @param std
    * @param semester
    * @return
