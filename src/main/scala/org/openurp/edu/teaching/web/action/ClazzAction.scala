@@ -44,6 +44,7 @@ import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.*
 import org.openurp.edu.clazz.service.ClazzDocService
 import org.openurp.edu.course.model.SyllabusDoc
+import org.openurp.edu.exam.model.ExamActivity
 import org.openurp.edu.schedule.service.ScheduleDigestor
 import org.openurp.edu.textbook.model.ClazzMaterial
 
@@ -410,7 +411,11 @@ class ClazzAction extends ActionSupport {
       put("rooms", clazz.schedule.activities.flatMap(_.rooms).map(_.name).mkString(" "))
     }
     put("material", entityDao.findBy(classOf[ClazzMaterial], "clazz", clazz).headOption)
-    put("syllabusDocs", entityDao.findBy(classOf[SyllabusDoc], "course", clazz.course))
+    val syllabusDocs = entityDao.findBy(classOf[SyllabusDoc], "course", clazz.course).filter(_.within(clazz.semester.beginOn))
+    put("syllabusDocs", syllabusDocs)
+
+    val examActivities = entityDao.findBy(classOf[ExamActivity], "clazz", clazz)
+    put("examActivities", examActivities)
     forward()
   }
 

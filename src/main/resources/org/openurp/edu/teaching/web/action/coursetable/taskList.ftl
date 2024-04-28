@@ -2,7 +2,9 @@
 [@b.grid items=taskList?sort_by("courseType","name") var="clazz" sortable="false" style="border: 0.5px solid #006CB2;"]
     [@b.row]
         [@b.col title="序号" width="3%"]${clazz_index+1}[/@]
-        [@b.col property="crn" title="课程序号" width="5%"]${clazz.crn}[/@]
+        [@b.col property="crn" title="课程序号" width="5%"]
+          [@b.a href="clazz!info?clazz.id="+clazz.id title="查看详情" target="_blank"]${clazz.crn}[/@]
+        [/@]
         [@b.col property="course.code" title="课程代码" width="7%"/]
         [@b.col property="course.name" title="课程名称" width="17%"]
           [#if showClazzIndex]
@@ -15,14 +17,13 @@
           <span style="font-size:0.8em">${clazz.courseType.name}</span>
         [/@]
         [@b.col property="clazzName" title="教学班"]
-          <span style="font-size:0.8em">${clazz.clazzName}
-          </span>
+          <div class="text-ellipsis" title="${clazz.clazzName}">${clazz.clazzName}</div>
         [/@]
         [@b.col title="周数" width="5%"]
           ${(clazz.schedule.firstWeek)!}~${(clazz.schedule.lastWeek)!}
         [/@]
         [@b.col title="第一次上课" width="10%"]
-        [#if table.timePublished]${(clazz.schedule.firstDate?string("yyyy-MM-dd"))!}[/#if]
+        [#if table.timePublished]${(clazz.schedule.firstDateTime?string("yyyy-MM-dd HH:mm"))!}[/#if]
         [/@]
         [@b.col title="上课地点" width="10%"]
           [#if table.placePublished]
