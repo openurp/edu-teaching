@@ -37,13 +37,15 @@ import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.User
 import org.openurp.base.service.{Features, ProjectConfigService}
 import org.openurp.base.std.model.Student
-import org.openurp.code.edu.model.{TeachingForm, TeachingMethod, TeachingNature}
+import org.openurp.code.edu.model.{TeachingForm, TeachingNature}
 import org.openurp.edu.attendance.model.StdLeaveLesson
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.*
-import org.openurp.edu.clazz.service.ClazzMaterialService
+import org.openurp.edu.clazz.service.ClazzDocService
+import org.openurp.edu.course.model.SyllabusDoc
 import org.openurp.edu.schedule.service.ScheduleDigestor
+import org.openurp.edu.textbook.model.ClazzMaterial
 
 import java.io.InputStream
 import java.time.{Instant, LocalDate}
@@ -59,31 +61,19 @@ class ClazzAction extends ActionSupport {
 
   var configService: ProjectConfigService = _
 
-  var clazzMaterialService: ClazzMaterialService = _
+  var clazzDocService: ClazzDocService = _
 
   def index(): View = {
     val teacher = entityDao.findBy(classOf[Teacher], "staff.code" -> Securities.user).head
     val clazz = getClazz(teacher)
 
-    val query = OqlBuilder.from(classOf[ScheduleSetting], "setting")
-    query.where("setting.project =:project", clazz.project)
-    query.where("setting.semester =:semester", clazz.semester)
-    query.cacheable()
-    val setting = entityDao.search(query).headOption.getOrElse(new ScheduleSetting)
+    val setting = getScheduleSetting(clazz)
     put("setting", setting)
     val avatarUrls = clazz.teachers.map(x => (x.id, Ems.api + "/platform/user/avatars/" + Digests.md5Hex(x.code) + ".jpg")).toMap
     put("avatarUrls", avatarUrls)
     put("clazzes", clazzProvider.getClazzes(clazz.semester, teacher, clazz.project))
-    put("tutorSupported", configService.get(clazz.project, Features.Std.TutorSupported))
+    put("tutorSupported", configService.get[Boolean](clazz.project, Features.Std.TutorSupported))
 
-    //    val lessons = Collections.newBuffer[(Instant, Instant)]
-    //    clazz.schedule.activities.foreach { a =>
-    //      a.time.dates foreach { d =>
-    //        val s1 = d.atTime(a.time.beginAt.hour, a.time.beginAt.minute).atZone(ZoneId.systemDefault()).toInstant
-    //        val s2 = d.atTime(a.time.endAt.hour, a.time.endAt.minute).atZone(ZoneId.systemDefault()).toInstant
-    //        lessons.addOne((s1, s2))
-    //      }
-    //    }
     val q1 = OqlBuilder.from(classOf[StdLeaveLesson], "sll")
     q1.where("sll.clazz=:clazz", clazz)
     q1.orderBy("sll.std.code,sll.lessonOn")
@@ -128,7 +118,7 @@ class ClazzAction extends ActionSupport {
     val parts = getAll("attachment", classOf[Part])
     parts foreach { part =>
       if (part.getSize > 0) {
-        clazzMaterialService.createNoticeFile(notice, part.getInputStream, part.getSubmittedFileName)
+        clazzDocService.createNoticeFile(notice, part.getInputStream, part.getSubmittedFileName)
       }
     }
     redirect("notices", "clazz.id=" + notice.clazz.id, "info.save.success")
@@ -149,17 +139,17 @@ class ClazzAction extends ActionSupport {
     redirect("notices", "clazz.id=" + clazzId, "info.remove.success")
   }
 
-  def materials(): View = {
+  def docs(): View = {
     val clazzId = getLong("clazz.id").getOrElse(0L)
-    val query = OqlBuilder.from(classOf[ClazzMaterial], "notice")
-    query.where("notice.clazz.id=:clazzId", clazzId)
-    put("materials", entityDao.search(query))
+    val query = OqlBuilder.from(classOf[ClazzDoc], "doc")
+    query.where("doc.clazz.id=:clazzId", clazzId)
+    put("docs", entityDao.search(query))
     put("clazzId", clazzId)
     forward()
   }
 
-  def saveMaterial(): View = {
-    val clazz = entityDao.get(classOf[Clazz], getLong("material.clazz.id").getOrElse(0L))
+  def saveDoc(): View = {
+    val clazz = entityDao.get(classOf[Clazz], getLong("doc.clazz.id").getOrElse(0L))
     val parts = getAll("attachment", classOf[Part])
     var in: Option[InputStream] = None
     var fileName: Option[String] = None
@@ -168,23 +158,23 @@ class ClazzAction extends ActionSupport {
       in = Some(part.getInputStream)
       fileName = Some(part.getSubmittedFileName)
     }
-    clazzMaterialService.createMaterial(clazz, get("material.name").get, get("material.url"), in, fileName)
-    redirect("materials", "clazz.id=" + clazz.id, "info.save.success")
+    clazzDocService.createDoc(clazz, get("doc.name").get, get("doc.url"), in, fileName)
+    redirect("docs", "clazz.id=" + clazz.id, "info.save.success")
   }
 
-  def removeMaterial(): View = {
+  def removeDoc(): View = {
     var clazzId = 0L
-    getLong("material.id") foreach { materialId =>
-      val material = entityDao.get(classOf[ClazzMaterial], materialId)
-      if (material.clazz.teachers.exists(x => x.code == Securities.user)) {
-        material.filePath foreach { p =>
+    getLong("doc.id") foreach { docId =>
+      val doc = entityDao.get(classOf[ClazzDoc], docId)
+      if (doc.clazz.teachers.exists(x => x.code == Securities.user)) {
+        doc.filePath foreach { p =>
           EmsApp.getBlobRepository(true).remove(p)
         }
-        clazzId = material.clazz.id
-        entityDao.remove(material)
+        clazzId = doc.clazz.id
+        entityDao.remove(doc)
       }
     }
-    redirect("materials", "clazz.id=" + clazzId, "info.remove.success")
+    redirect("docs", "clazz.id=" + clazzId, "info.remove.success")
   }
 
   /**
@@ -194,15 +184,15 @@ class ClazzAction extends ActionSupport {
    */
   def download(): View = {
     val noticeFileId = getLong("noticeFile.id").getOrElse(0L)
-    val materialId = getLong("material.id").getOrElse(0L)
+    val docId = getLong("doc.id").getOrElse(0L)
     val bulletinId = getLong("bulletin.id").getOrElse(0L)
     if (noticeFileId > 0) {
       val noticeFile = entityDao.get(classOf[ClazzNoticeFile], noticeFileId)
       val path = EmsApp.getBlobRepository(true).url(noticeFile.filePath)
       redirect(to(path.get.toString), "x")
-    } else if (materialId > 0) {
-      val material = entityDao.get(classOf[ClazzMaterial], materialId)
-      material.filePath match {
+    } else if (docId > 0) {
+      val doc = entityDao.get(classOf[ClazzDoc], docId)
+      doc.filePath match {
         case None => Status.NotFound
         case Some(p) =>
           val path = EmsApp.getBlobRepository(true).url(p)
@@ -294,7 +284,7 @@ class ClazzAction extends ActionSupport {
     val parts = getAll("attachment", classOf[Part])
     if (parts.nonEmpty && parts.head.getSize > 0) {
       val part = parts.head
-      clazzMaterialService.createBulletinFile(bulletin, part.getInputStream, part.getSubmittedFileName)
+      clazzDocService.createBulletinFile(bulletin, part.getInputStream, part.getSubmittedFileName)
     }
     redirect("bulletin", s"clazz.id=${bulletin.clazz.id}", "info.save.success")
   }
@@ -375,8 +365,8 @@ class ClazzAction extends ActionSupport {
       this.openOn = d
       this.beginAt = ca.time.beginAt
       this.endAt = ca.time.endAt
-      this.places = Some(ca.rooms.map(_.name).mkString(" "))
-      (ca.beginUnit.toInt to ca.endUnit.toInt) foreach { u => units.addOne(u) }
+      this.places = Some(ca.rooms.map(_.name).mkString(" "));
+      (ca.beginUnit.toInt to ca.endUnit.toInt) foreach (units.addOne)
     }
 
     def merge(that: LessonTime): Unit = {
@@ -407,6 +397,23 @@ class ClazzAction extends ActionSupport {
     redirect("teachingPlan", s"clazz.id=${clazz.id}", "info.remove.success")
   }
 
+  def info(): View = {
+    val teacher = entityDao.findBy(classOf[Teacher], "staff.code" -> Securities.user).head
+    val clazz = getClazz(teacher)
+    put("clazz", clazz)
+
+    val setting = getScheduleSetting(clazz)
+    if (setting.timePublished) {
+      put("schedule", ScheduleDigestor.digest(clazz, ":day :units :weeks"))
+    }
+    if (setting.placePublished) {
+      put("rooms", clazz.schedule.activities.flatMap(_.rooms).map(_.name).mkString(" "))
+    }
+    put("material", entityDao.findBy(classOf[ClazzMaterial], "clazz", clazz).headOption)
+    put("syllabusDocs", entityDao.findBy(classOf[SyllabusDoc], "course", clazz.course))
+    forward()
+  }
+
   private def getTeachingPlan(): Option[TeachingPlan] = {
     val teacher = entityDao.findBy(classOf[Teacher], "staff.code" -> Securities.user).head
     val clazz = getClazz(teacher)
@@ -425,6 +432,14 @@ class ClazzAction extends ActionSupport {
     val query = OqlBuilder.from(classOf[ClazzBulletin], "bulletin")
     query.where("bulletin.clazz=:clazz", clazz)
     entityDao.search(query).headOption
+  }
+
+  private def getScheduleSetting(clazz: Clazz): ScheduleSetting = {
+    val query = OqlBuilder.from(classOf[ScheduleSetting], "setting")
+    query.where("setting.project =:project", clazz.project)
+    query.where("setting.semester =:semester", clazz.semester)
+    query.cacheable()
+    entityDao.search(query).headOption.getOrElse(new ScheduleSetting)
   }
 }
 

@@ -26,7 +26,7 @@
       [@b.div href="!bulletin?clazz.id="+clazz.id/]
       [#include "course.ftl"/]
       [#include "exam_grade.ftl"/]
-      [@b.div href="!materials?clazz.id="+clazz.id/]
+      [@b.div href="!docs?clazz.id="+clazz.id/]
     </div>
   </div>
 </div>

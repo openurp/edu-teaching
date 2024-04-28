@@ -6,9 +6,9 @@
         [@b.col property="course.code" title="课程代码" width="7%"/]
         [@b.col property="course.name" title="课程名称" width="17%"]
           [#if showClazzIndex]
-             [@b.a href="clazz?clazz.id="+clazz.id title="进入课程"]${clazz.courseName}[/@]
+            [@b.a href="clazz?clazz.id="+clazz.id title="进入课程" target="_blank"]${clazz.courseName}[/@]
           [#else]
-             ${clazz.courseName}
+            [@b.a href="clazz!info?clazz.id="+clazz.id title="查看详情" target="_blank"]${clazz.courseName}[/@]
           [/#if]
         [/@]
         [@b.col property="courseType.name" title="课程类别" width="12%"]
