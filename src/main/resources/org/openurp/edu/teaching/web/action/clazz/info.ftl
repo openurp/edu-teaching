@@ -11,7 +11,7 @@
     }
   </style>
   [@b.card class="card card-info card-outline"]
-    [@b.card_header]
+    [@b.card_header style="padding: 0.5rem 1.25rem;"]
       <h3 class="card-title"><i class="fa-solid fa-circle-info"></i> 基本信息(${clazz.semester.schoolYear}学年${clazz.semester.name}学期 ${clazz.crn})</h3>
     [/@]
     [@b.card_body style="padding-top: 0px;"]
@@ -20,17 +20,15 @@
           <td class="title" width="10%">课程代码:</td>
           <td class="content" width="23%">${clazz.course.code}</td>
           <td class="title" width="10%">课程名称:</td>
-          <td class="content"  width="24%">${clazz.course.name}</td>
-          <td class="title" width="10%">副标题:</td>
-          <td class="content" width="23%">${clazz.subject!}</td>
+          <td class="content"  width="24%">${clazz.course.name}[#if clazz.subject??]--${clazz.subject}[/#if]</td>
+          <td class="title" width="10%">开课院系:</td>
+          <td class="content" width="23%">${clazz.teachDepart.name}</td>
         </tr>
         <tr>
           <td class="title" >学分:</td>
           <td class="content" >${clazz.course.creditsInfo} </td>
           <td class="title" >课程英文名:</td>
-          <td class="content">${clazz.course.enName!'--'}</td>
-          <td class="title" >开课院系:</td>
-          <td class="content">${clazz.teachDepart.name}</td>
+          <td class="content" colspan="3">${clazz.course.enName!'--'}</td>
         </tr>
         <tr>
           <td class="title">课程类别:</td>
@@ -53,7 +51,7 @@
   [/@]
 
   [@b.card class="card card-info card-outline"]
-    [@b.card_header]
+    [@b.card_header style="padding: 0.5rem 1.25rem;"]
       <h3 class="card-title"><i class="fa-solid fa-users"></i> 授课对象</h3>
     [/@]
     [@b.card_body style="padding-top: 0px;"]
@@ -91,7 +89,7 @@
   [/@]
 
   [@b.card class="card card-info card-outline"]
-    [@b.card_header]
+    [@b.card_header style="padding: 0.5rem 1.25rem;"]
       <h3 class="card-title"><i class="fa-solid fa-calendar-days"></i> 排课信息</h3>
     [/@]
     [@b.card_body style="padding-top: 0px;"]
@@ -118,7 +116,7 @@
 
   [#if material??]
   [@b.card class="card card-info card-outline"]
-    [@b.card_header]
+    [@b.card_header style="padding: 0.5rem 1.25rem;"]
       <h3 class="card-title"><i class="fa-solid fa-book"></i> 教材信息</h3>
     [/@]
     [@b.card_body style="padding-top: 0px;"]
@@ -154,7 +152,7 @@
 
   [#if syllabusDocs?size>0]
   <div class="card card-info card-outline">
-    <div class="card-header">
+    <div class="card-header" style="padding: 0.5rem 1.25rem;">
       <p class="card-title"><i class="fa-solid fa-list"></i> 教学大纲</p>
     </div>
       <table class="table  table-sm">
