@@ -18,7 +18,7 @@
        [#assign now=b.now?string("yyyyMMdd")?number/]
         <ul style="padding-left: 10px;">
           [#list plan.lessons?sort_by("idx") as lesson]
-            <li [#if lesson.openOn?string("yyyyMMdd")?number<now]class="text-muted"[/#if]>${lesson.openOn?string("MM-dd")} ${lesson.places!} [#if lesson.contents?length>2]<br>[/#if]${(lesson.contents!"")?replace("\n","<br>")}</li>
+            <li>${lesson.idx} ${lesson.remark!} [#if lesson.contents?length>2]<br>[/#if]${(lesson.contents!"")?replace("\n","<br>")}</li>
           [/#list]
         </ul>
         [#else]尚未填写[/#if]

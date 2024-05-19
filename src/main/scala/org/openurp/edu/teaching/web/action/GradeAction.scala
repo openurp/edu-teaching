@@ -29,6 +29,7 @@ import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.*
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.{Clazz, CourseTaker}
+import org.openurp.edu.course.model.ExamAnalysis
 import org.openurp.edu.exam.model.ExamTaker
 import org.openurp.edu.grade.config.GradeInputSwitch
 import org.openurp.edu.grade.model.*

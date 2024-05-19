@@ -52,7 +52,7 @@ class ExamAction extends TeacherSupport {
         if (activity.publishState != PublishState.None) {
           activity.rooms foreach { examRoom =>
             val duty =
-              examRoom.invigilations.find(_.invigilator.contains(teacher.user)) match
+              examRoom.invigilations.find(_.invigilator.map(_.code).contains(teacher.code)) match
                 case None => ExamDuty(teacher, examRoom, Duty.Teacher)
                 case Some(i) => ExamDuty(teacher, examRoom, if i.chief then Duty.ChiefInvigilator else Duty.OtherInvigilator)
             duties.put(examRoom, duty)
@@ -66,7 +66,7 @@ class ExamAction extends TeacherSupport {
         if (examRoom.activities.exists(_.publishState != PublishState.None)) {
           if !duties.contains(examRoom) then
             val duty =
-              examRoom.invigilations.find(_.invigilator.contains(teacher.user)) match
+              examRoom.invigilations.find(_.invigilator.map(_.code).contains(teacher.code)) match
                 case None => ExamDuty(teacher, examRoom, Duty.Teacher)
                 case Some(i) => ExamDuty(teacher, examRoom, if i.chief then Duty.ChiefInvigilator else Duty.OtherInvigilator)
             duties.put(examRoom, duty)
@@ -107,7 +107,7 @@ class ExamAction extends TeacherSupport {
     query.where("examRoom.semester =:semester", semester)
     query.where("examRoom.examType =:examType", examType)
     query.where("exists(from examRoom.activities activity where activity.clazz.project =:project)", project)
-    query.where("exists (from examRoom.invigilations invigilation where invigilation.invigilator =:invigilator)", teacher.user)
+    query.where("exists (from examRoom.invigilations invigilation where invigilation.invigilator.code =:invigilator)", teacher.code)
 
     entityDao.search(query)
   }

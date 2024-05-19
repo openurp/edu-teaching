@@ -109,7 +109,8 @@
               [#if group.matched(std,teacher)]
              [#assign course =group.getCourse(term?int)/]
              [#assign tabIndex=(std_index+1)+group_index*stds?size/]
-             <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}" placeholder="第${term}学期 ${course.name}" tabIndex="${tabIndex}">
+             <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}" tabIndex="${tabIndex}" style="width:50px">
+             第${term}学期 ${course.name}
               [#else]
               [#if ((std.tutor.name)!'') != teacher.name]导师 ${(std.tutor.name)!}[/#if][#if ((std.advisor.name)!'') != teacher.name]论文导师 ${(std.advisor.name)!}[/#if]
               [/#if]

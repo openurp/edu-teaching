@@ -125,7 +125,7 @@
       [#list plan.lessons as lesson]
       <tr>
         <td>${lesson.idx}</td>
-        <td>${lesson.openOn}</td>
+        <td>${lesson.idx}</td>
         <td>${clazz.schedule.weekHours}</td>
         <td><input type="text" name="lesson${lesson_index}_contents" style="width:100%"/></td>
         <td>

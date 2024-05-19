@@ -43,7 +43,7 @@ import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.*
 import org.openurp.edu.clazz.service.ClazzDocService
-import org.openurp.edu.course.model.SyllabusDoc
+import org.openurp.edu.course.model.{Lesson, SyllabusDoc, TeachingPlan}
 import org.openurp.edu.exam.model.ExamActivity
 import org.openurp.edu.schedule.service.ScheduleDigestor
 import org.openurp.edu.textbook.model.ClazzMaterial
@@ -329,16 +329,9 @@ class ClazzAction extends ActionSupport {
       times = mergedTimes.sorted
       times foreach { time =>
         val lesson = new Lesson()
-        lesson.openOn = time.openOn
-        lesson.beginAt = time.beginAt
-        lesson.endAt = time.endAt
-        lesson.places = time.places
         lesson.plan = tp
-        lesson.units = time.units.toBuffer.sorted.mkString(",")
         lesson.idx = i
         i += 1
-        lesson.nature = entityDao.get(classOf[TeachingNature], TeachingNature.Theory)
-        lesson.form = entityDao.get(classOf[TeachingForm], TeachingForm.Offline)
         lesson.contents = " "
         tp.lessons += lesson
       }
@@ -383,7 +376,7 @@ class ClazzAction extends ActionSupport {
       var contents = get(s"lesson${lesson.id}.contents", "")
       if Strings.isEmpty(contents) then contents = " "
       lesson.contents = contents
-      lesson.places = get(s"lesson${lesson.id}.places")
+      lesson.remark = get(s"lesson${lesson.id}.remark")
     }
     entityDao.saveOrUpdate(plan)
     redirect("teachingPlan", s"clazz.id=${plan.clazz.id}", "info.save.success")

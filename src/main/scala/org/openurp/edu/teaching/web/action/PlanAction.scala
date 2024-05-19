@@ -22,7 +22,8 @@ import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.Project
 import org.openurp.code.edu.model.TeachingMethod
 import org.openurp.edu.clazz.domain.ClazzProvider
-import org.openurp.edu.clazz.model.{Clazz, Lesson, TeachingPlan}
+import org.openurp.edu.clazz.model.Clazz
+import org.openurp.edu.course.model.{Lesson, TeachingPlan}
 import org.openurp.edu.schedule.service.{LessonSchedule, ScheduleDigestor}
 import org.openurp.starter.web.support.TeacherSupport
 
@@ -78,10 +79,8 @@ class PlanAction extends TeacherSupport {
         idx += 1
         val lesson = new Lesson()
         lesson.plan = plan
-        lesson.openOn = schedule.date
-        lesson.units = schedule.units
         lesson.idx = idx
-        lesson.places = Some(schedule.room)
+        lesson.remark = Some(schedule.room)
         plan.lessons.addOne(lesson)
       }
     }

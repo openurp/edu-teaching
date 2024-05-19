@@ -34,7 +34,7 @@ import org.openurp.edu.grade.model.{CourseGrade, Grade}
 import org.openurp.edu.grade.service.CourseGradeCalculator
 import org.openurp.starter.web.support.TeacherSupport
 
-import java.time.Instant
+import java.time.{Instant, LocalDate}
 
 /**
  * 导师指导学生的主课成绩录入
@@ -58,11 +58,13 @@ class GuidanceAction extends TeacherSupport {
       val activeStds = Collections.newSet[Student]
       val groupTerms = Collections.newMap[String, Int]
       val termCalculator = new TermCalculator(project, semester, entityDao)
-      for (std <- stds; group <- groups) {
+      for (std <- stds) {
         val term = calcTerm(std, semester)
-        if (group.contains(term)) {
-          groupTerms.put(s"${std.id}_${group.name}", term)
-          activeStds.add(std)
+        for (group <- groups) {
+          if (group.contains(term)) {
+            groupTerms.put(s"${std.id}_${group.name}", term)
+            activeStds.add(std)
+          }
         }
       }
       put("stds", activeStds.toSeq.sortBy(x => x.grade.code + x.code))
@@ -90,6 +92,7 @@ class GuidanceAction extends TeacherSupport {
   private def calcTerm(std: Student, semester: Semester): Int = {
     val project = std.project
 
+    if (!isStuding(std, semester.beginOn.plusDays(20), semester.endOn.minusDays(20))) return 0
     val sp = semesterService.get(project, std.beginOn, semester.endOn)
     val semesters = Collections.newBuffer[Semester]
     semesters ++= sp._1
@@ -98,9 +101,16 @@ class GuidanceAction extends TeacherSupport {
     semesters foreach { s =>
       val beginOn = s.beginOn.plusDays(20)
       val endOn = s.endOn.minusDays(20)
-      if (!std.states.exists(x => x.beginOn.isBefore(endOn) && beginOn.isBefore(x.endOn) && x.inschool)) notinschool += 1
+      if (!isStuding(std, beginOn, endOn)) notinschool += 1
     }
     semesters.size - notinschool
+  }
+
+  private def isStuding(std: Student, beginOn: LocalDate, endOn: LocalDate): Boolean = {
+    val states = std.states.filter(x => x.beginOn.isBefore(endOn) && beginOn.isBefore(x.endOn))
+    if states.exists(_.inschool) then true
+    else
+      states.exists(x => x.remark.getOrElse("").contains("交流") || x.remark.getOrElse("").contains("交换"))
   }
 
   private def getGrades(project: Project, semester: Semester, courses: Iterable[Course], stds: Iterable[Student]): Seq[CourseGrade] = {
@@ -147,8 +157,6 @@ class GuidanceAction extends TeacherSupport {
   private def getStds(teacher: Teacher, semester: Semester): Seq[Student] = {
     val stdQuery = OqlBuilder.from(classOf[Student], "std").where("std.tutor=:me or std.advisor=:me", teacher)
     stdQuery.where("std.beginOn < :endOn and :beginOn < std.endOn", semester.endOn, semester.beginOn)
-    stdQuery.where("exists(from std.states s where s.inschool=true and s.beginOn <= :endOn and :beginOn <= s.endOn)",
-      semester.endOn, semester.beginOn)
     stdQuery.orderBy("std.state.grade.code,std.code")
     entityDao.search(stdQuery)
   }
