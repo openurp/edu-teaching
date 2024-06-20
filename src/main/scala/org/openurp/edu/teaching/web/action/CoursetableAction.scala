@@ -17,17 +17,19 @@
 
 package org.openurp.edu.teaching.web.action
 
+import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.template.freemarker.ProfileTemplateLoader
 import org.beangle.web.action.view.View
-import org.openurp.base.hr.model.Teacher
+import org.openurp.base.edu.model.TimeSetting
 import org.openurp.base.edu.service.TimeSettingService
+import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester}
 import org.openurp.code.edu.model.TeachingNature
-import org.openurp.edu.service.Features
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.{ClazzProvider, WeekTimeBuilder}
 import org.openurp.edu.schedule.service.CourseTable
+import org.openurp.edu.service.Features
 import org.openurp.starter.web.support.TeacherSupport
 
 class CoursetableAction extends TeacherSupport {
@@ -47,7 +49,17 @@ class CoursetableAction extends TeacherSupport {
     table.timePublished = setting.timePublished
     val weektimes = WeekTimeBuilder.build(semester, "*")
     table.setClazzes(clazzProvider.getClazzes(semester, teacher, project), weektimes)
-    table.timeSetting = timeSettingService.get(project, semester, None)
+    val campuses = table.clazzes.map(_.campus).toSet
+    val settings = Collections.newBuffer[TimeSetting]
+    campuses foreach { c =>
+      try {
+        val setting = timeSettingService.get(project, semester, Some(c))
+        settings.addOne(setting)
+      } catch {
+        case e: Exception =>
+      }
+    }
+    table.timeSetting = settings.head
     table.style = CourseTable.Style.WEEK_TABLE
     if (getConfig(Features.Clazz.TableStyle) == "UNIT_COLUMN") {
       table.style = CourseTable.Style.UNIT_COLUMN
