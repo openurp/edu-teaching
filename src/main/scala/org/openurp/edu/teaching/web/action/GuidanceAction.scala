@@ -192,7 +192,7 @@ class GuidanceAction extends TeacherSupport {
                   g.crn = "--"
                   g.operator = Some(Securities.user)
                   g.gradingMode = gradingMode
-                  g.courseType = course.courseType
+                  g.courseType = course.courseType.get
                   g.examMode = course.examMode
                   val ctt = new CourseTakeType()
                   ctt.id = CourseTakeType.Normal

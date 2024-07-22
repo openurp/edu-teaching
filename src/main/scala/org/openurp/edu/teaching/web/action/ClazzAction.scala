@@ -311,7 +311,6 @@ class ClazzAction extends ActionSupport {
     val clazz: Clazz = ActionContext.current.attribute("clazz")
     if (!tp.persisted) {
       tp.clazz = clazz
-      tp.docLocale = Locale.SIMPLIFIED_CHINESE
       tp.semester = clazz.semester
       tp.updatedAt = Instant.now
       var times = Collections.newBuffer[LessonTime]
