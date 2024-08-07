@@ -43,7 +43,7 @@ import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.*
 import org.openurp.edu.clazz.service.ClazzDocService
-import org.openurp.edu.course.model.{Lesson, SyllabusDoc, TeachingPlan}
+import org.openurp.edu.course.model.{Lesson, SyllabusDoc, ClazzPlan}
 import org.openurp.edu.exam.model.ExamActivity
 import org.openurp.edu.schedule.service.ScheduleDigestor
 import org.openurp.edu.textbook.model.ClazzMaterial
@@ -307,8 +307,8 @@ class ClazzAction extends ActionSupport {
   }
 
   def editTeachingPlan(): View = {
-    val tp = getTeachingPlan().getOrElse(new TeachingPlan)
     val clazz: Clazz = ActionContext.current.attribute("clazz")
+    val tp = getTeachingPlan().getOrElse(new ClazzPlan)
     if (!tp.persisted) {
       tp.clazz = clazz
       tp.semester = clazz.semester
@@ -411,12 +411,12 @@ class ClazzAction extends ActionSupport {
     forward()
   }
 
-  private def getTeachingPlan(): Option[TeachingPlan] = {
+  private def getTeachingPlan(): Option[ClazzPlan] = {
     val teacher = entityDao.findBy(classOf[Teacher], "staff.code" -> Securities.user).head
     val clazz = getClazz(teacher)
     put("clazz", clazz)
     put("teacher", teacher)
-    val query = OqlBuilder.from(classOf[TeachingPlan], "plan")
+    val query = OqlBuilder.from(classOf[ClazzPlan], "plan")
     query.where("plan.clazz=:clazz", clazz)
     entityDao.search(query).headOption
   }
