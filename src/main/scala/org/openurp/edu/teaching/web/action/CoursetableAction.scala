@@ -59,6 +59,10 @@ class CoursetableAction extends TeacherSupport {
         case e: Exception =>
       }
     }
+    if (settings.isEmpty) {
+      val setting = timeSettingService.get(project, semester, None)
+      settings.addOne(setting)
+    }
     table.timeSetting = settings.head
     table.style = CourseTable.Style.WEEK_TABLE
     if (getConfig(Features.Clazz.TableStyle) == "UNIT_COLUMN") {

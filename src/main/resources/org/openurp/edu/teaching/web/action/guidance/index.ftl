@@ -43,7 +43,7 @@
   <script>
   function changeSemester(semesterId){
     var form = document.gradeForm;
-    if(confirm("需要保存成绩吗?")){
+    if(confirm("需要提交成绩吗(提交后修改,需要联系培养办)？")){
       bg.form.addInput(form,"toSemester.id",semesterId);
       bg.form.submit(form);
     }else{
@@ -79,7 +79,7 @@
       </h3>
       [@b.card_tools]
         <span class="text-muted pc-tips">每个课程支持Tab或者回车键，纵向依次录入</span>
-        <button type="button" class="btn btn-sm btn-primary" onclick="bg.form.submit(document.gradeForm)">
+        <button type="button" class="btn btn-sm btn-primary" onclick="if(confirm('需要提交成绩吗(提交后修改,需要联系培养办)？')){bg.form.submit(document.gradeForm);return true}else{return false;}">
           <i class="fas fa-save"></i>保存
         </button>
       [/@]
@@ -109,8 +109,11 @@
               [#if group.matched(std,teacher)]
              [#assign course =group.getCourse(term?int)/]
              [#assign tabIndex=(std_index+1)+group_index*stds?size/]
-             <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}" tabIndex="${tabIndex}" style="width:50px">
-             第${term}学期 ${course.name}
+               [#if ((gradeMap.get(course).get(std).score)!0)>0]
+               ${((gradeMap.get(course).get(std).score)!0)} 第${term}学期 ${course.name}
+               [#else]
+               <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}"  tabIndex="${tabIndex}" style="width:50px">第${term}学期 ${course.name}
+               [/#if]
               [#else]
               [#if ((std.tutor.name)!'') != teacher.name]导师 ${(std.tutor.name)!}[/#if][#if ((std.advisor.name)!'') != teacher.name]论文导师 ${(std.advisor.name)!}[/#if]
               [/#if]

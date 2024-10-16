@@ -178,8 +178,19 @@ class GuidanceAction extends TeacherSupport {
         val gradingMode = entityDao.get(classOf[GradingMode], GradingMode.Percent)
         val endGaType = entityDao.get(classOf[GradeType], GradeType.EndGa)
         for (std <- stds; group <- groups; course <- group.courses if group.matched(std, teacher)) {
-          getFloat(s"${std.id}_${course.id}.score") match {
-            case Some(score) =>
+          get(s"${std.id}_${course.id}.score") foreach { scoreText =>
+            val score = getFloat(s"${std.id}_${course.id}.score").getOrElse(0f)
+            if (Strings.isEmpty(scoreText)) {
+              gradeMap.getOrElse(course, Map.empty).get(std) foreach { grade =>
+                val oldScore = grade.score.map(_.toString).getOrElse("")
+                val gaGrade = grade.addGaGrade(endGaType, Grade.Status.Published)
+                calculator.updateScore(gaGrade, None, grade.gradingMode)
+                calculator.calcFinal(grade)
+                entityDao.saveOrUpdate(grade)
+                val msg = s"删除了${std.code}的${course.name}成绩：$oldScore"
+                businessLogger.info(msg, grade.id, Map.empty)
+              }
+            } else {
               val grade = gradeMap.getOrElse(course, Map.empty).get(std) match {
                 case None =>
                   val g = new CourseGrade
@@ -218,18 +229,7 @@ class GuidanceAction extends TeacherSupport {
                   businessLogger.info(msg, grade.id, Map.empty)
                 }
               }
-            case None =>
-              if (get(s"${std.id}_${course.id}.score").nonEmpty) {
-                gradeMap.getOrElse(course, Map.empty).get(std) foreach { grade =>
-                  val oldScore = grade.score.map(_.toString).getOrElse("")
-                  val gaGrade = grade.addGaGrade(endGaType, Grade.Status.Published)
-                  calculator.updateScore(gaGrade, None, grade.gradingMode)
-                  calculator.calcFinal(grade)
-                  entityDao.saveOrUpdate(grade)
-                  val msg = s"删除了${std.code}的${course.name}成绩：$oldScore"
-                  businessLogger.info(msg, grade.id, Map.empty)
-                }
-              }
+            }
           }
         }
       }
