@@ -22,7 +22,7 @@ import org.beangle.commons.lang.Strings
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.ems.app.web.WebBusinessLogger
 import org.beangle.security.Securities
-import org.beangle.web.action.view.View
+import org.beangle.webmvc.view.View
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester}
 import org.openurp.base.std.model.Student

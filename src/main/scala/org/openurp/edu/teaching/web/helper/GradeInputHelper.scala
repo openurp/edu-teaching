@@ -21,7 +21,7 @@ import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.Strings
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.security.Securities
-import org.beangle.web.action.context.{ActionContext, Params}
+import org.beangle.webmvc.context.{ActionContext, Params}
 import org.openurp.base.std.model.Student
 import org.openurp.code.edu.model.*
 import org.openurp.edu.clazz.model.{Clazz, CourseTaker}

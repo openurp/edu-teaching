@@ -17,7 +17,7 @@
 
 package org.openurp.edu.teaching.web.action
 
-import org.beangle.web.action.view.View
+import org.beangle.webmvc.view.View
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.Project
 import org.openurp.code.edu.model.TeachingMethod

@@ -18,9 +18,9 @@
 package org.openurp.edu.teaching.web.action
 
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
-import org.beangle.web.action.annotation.{mapping, response}
-import org.beangle.web.action.context.ActionContext
-import org.beangle.web.action.support.ActionSupport
+import org.beangle.webmvc.annotation.{mapping, response}
+import org.beangle.webmvc.context.ActionContext
+import org.beangle.webmvc.support.ActionSupport
 import org.beangle.webmvc.support.action.EntityAction
 import org.openurp.code.edu.model.GradeType
 import org.openurp.code.service.CodeService

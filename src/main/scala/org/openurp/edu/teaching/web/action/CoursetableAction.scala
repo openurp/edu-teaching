@@ -19,8 +19,7 @@ package org.openurp.edu.teaching.web.action
 
 import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.OqlBuilder
-import org.beangle.template.freemarker.ProfileTemplateLoader
-import org.beangle.web.action.view.View
+import org.beangle.webmvc.view.View
 import org.openurp.base.edu.model.TimeSetting
 import org.openurp.base.edu.service.TimeSettingService
 import org.openurp.base.hr.model.Teacher
@@ -30,6 +29,7 @@ import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.{ClazzProvider, WeekTimeBuilder}
 import org.openurp.edu.schedule.service.CourseTable
 import org.openurp.edu.service.Features
+import org.openurp.starter.web.helper.ProjectProfile
 import org.openurp.starter.web.support.TeacherSupport
 
 class CoursetableAction extends TeacherSupport {
@@ -49,7 +49,8 @@ class CoursetableAction extends TeacherSupport {
     table.timePublished = setting.timePublished
     val weektimes = WeekTimeBuilder.build(semester, "*")
     table.setClazzes(clazzProvider.getClazzes(semester, teacher, project), weektimes)
-    val campuses = table.clazzes.map(_.campus).toSet
+    var campuses = table.clazzes.map(_.campus).toSet
+    if (campuses.isEmpty) campuses = project.campuses.toSet
     val settings = Collections.newBuffer[TimeSetting]
     campuses foreach { c =>
       try {
@@ -71,7 +72,7 @@ class CoursetableAction extends TeacherSupport {
     put("showClazzIndex", getConfig(Features.Clazz.IndexSupported))
     put("teachingNatures", codeService.get(classOf[TeachingNature]))
     put("table", table)
-    ProfileTemplateLoader.setProfile(project.id)
+    ProjectProfile.set(project)
     forward()
   }
 

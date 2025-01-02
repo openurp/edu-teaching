@@ -23,10 +23,10 @@ ThisBuild / developers := List(
 ThisBuild / description := "OpenURP Edu Teaching"
 ThisBuild / homepage := Some(url("http://openurp.github.io/edu-teaching/index.html"))
 
-val apiVer = "0.41.2"
-val starterVer = "0.3.38"
-val baseVer = "0.4.35"
-val eduCoreVer = "0.2.13"
+val apiVer = "0.41.14"
+val starterVer = "0.3.51"
+val baseVer = "0.4.46"
+val eduCoreVer = "0.3.7"
 val openurp_edu_api = "org.openurp.edu" % "openurp-edu-api" % apiVer
 val openurp_stater_web = "org.openurp.starter" % "openurp-starter-web" % starterVer
 val openurp_base_tag = "org.openurp.base" % "openurp-base-tag" % baseVer

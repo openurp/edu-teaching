@@ -44,7 +44,7 @@
             [#if clazz.enrollment.genderRatio =="1:0"]男[#elseif clazz.enrollment.genderRatio =="0:1"]女[#else]男女比:${clazz.enrollment.genderRatio}[/#if]
           [/#if]
           ${clazz.remark!}
-          [#list clazz.schedule.activities as activity]${(activity.places)!}[#if activity_has_next]<br/>[/#if][/#list]
+          [#list clazz.schedule.activities as activity][#if activity.places??]${activity.places}[#if activity_has_next]<br/>[/#if][/#if][/#list]
         [/@]
     [/@]
 [/@]

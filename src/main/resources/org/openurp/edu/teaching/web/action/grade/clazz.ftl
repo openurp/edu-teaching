@@ -73,26 +73,22 @@
                 <td>[#if (gradeInputSwitch.endAt)??]${gradeInputSwitch.endAt?string("yyyy-MM-dd HH:mm")}[/#if]</td>
               </tr>
               [/#if]
-
-              <tr>
-                <td colspan="4">
-                  [#macro small_stateinfo(status)]
-                    [#if (status>0)]
-                      &nbsp;<i class="fa-solid fa-check"></i>[#if status==1]已提交[#else]已发布[/#if]
-                    [/#if]
-                  [/#macro]
-                  [#macro infoLink(url,onclick, caption)]<a href="${url}" class="btn btn-sm btn-outline-info" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-circle-info"></i> ${caption?default("查看")}</a>[/#macro]
-                  [#macro inputHTML(url, onclick, caption)]<a href="${url}" onclick="${onclick}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i> ${caption?default("录入")}</a>[/#macro]
-                  [#macro removeGradeHTML(url,onclick,caption)]<a href="${url}" onclick="${onclick}" class="btn btn-sm btn-outline-danger" ><i class="fa-solid fa-xmark"></i> ${caption?default("删除")}</a>[/#macro]
-                  [#macro reportLink(url,onclick,caption)]<a href="${url}" target="_blank" class="btn btn-sm btn-outline-info" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
-                  [#macro reportLink2(url,onclick,caption)]<a href="${url}" target="_blank"  class="btn btn-sm btn-outline-primary" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
-                </td>
-              </tr>
             </table>
           </td>
         </tr>
       </table>
     </div>
+
+    [#macro small_stateinfo(status)]
+      [#if (status>0)]
+        &nbsp;<i class="fa-solid fa-check"></i>[#if status==1]已提交[#else]已发布[/#if]
+      [/#if]
+    [/#macro]
+    [#macro infoLink(url,onclick, caption)]<a href="${url}" class="btn btn-sm btn-outline-info" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-circle-info"></i> ${caption?default("查看")}</a>[/#macro]
+    [#macro inputHTML(url, onclick, caption)]<a href="${url}" onclick="${onclick}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen-to-square"></i> ${caption?default("录入")}</a>[/#macro]
+    [#macro removeGradeHTML(url,onclick,caption)]<a href="${url}" onclick="${onclick}" class="btn btn-sm btn-outline-danger" ><i class="fa-solid fa-xmark"></i> ${caption?default("删除")}</a>[/#macro]
+    [#macro reportLink(url,onclick,caption)]<a href="${url}" target="_blank" class="btn btn-sm btn-outline-info" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
+    [#macro reportLink2(url,onclick,caption)]<a href="${url}" target="_blank"  class="btn btn-sm btn-outline-primary" [#if onclick?length>0]onclick="${onclick}"[/#if]><i class="fa-solid fa-print"></i> ${caption?default("打印")}</a>[/#macro]
 
   [#if gaGradeTypes?size>0]
       [#include "panelEndGa.ftl"/]

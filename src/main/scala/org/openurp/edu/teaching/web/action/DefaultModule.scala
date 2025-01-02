@@ -17,7 +17,7 @@
 
 package org.openurp.edu.teaching.web.action
 
-import org.beangle.cdi.bind.BindModule
+import org.beangle.commons.cdi.BindModule
 
 class DefaultModule extends BindModule {
 
