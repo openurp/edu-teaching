@@ -11,9 +11,9 @@
           <td width="60px"><img width="60px" style="border-radius: 50%;" src="${avatarUrls.get(teacher.id)}" class="user-image"></td>
           <td>
          [#if teacher.staff.homepage??]
-         <a href="${teacher.staff.homepage}" target="_blank"> ${teacher.name} ${(teacher.staff.title.name)!} ${(teacher.staff.department.name)!}</a>
+         <a href="${teacher.staff.homepage}" target="_blank"> ${teacher.name} ${(teacher.staff.title.name)!}</a>
          [#else]
-         ${teacher.name} ${(teacher.staff.title.name)!} ${(teacher.staff.department.name)!}
+         ${teacher.name} ${(teacher.staff.title.name)!}
          [/#if]
          </td>
        </tr>
