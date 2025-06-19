@@ -44,7 +44,6 @@ import org.openurp.edu.clazz.service.ClazzDocService
 import org.openurp.edu.course.model.{ClazzPlan, Lesson, SyllabusDoc}
 import org.openurp.edu.exam.model.ExamActivity
 import org.openurp.edu.schedule.service.ScheduleDigestor
-import org.openurp.edu.textbook.model.ClazzMaterial
 import org.openurp.starter.web.helper.ProjectProfile
 
 import java.io.InputStream
@@ -86,8 +85,10 @@ class ClazzAction extends ActionSupport {
     val clazz = entityDao.get(classOf[Clazz], getLongId("clazz"))
     if (null != clazz && clazz.teachers.contains(teacher)) {
       put("clazz", clazz)
+      clazz
+    } else {
+      null
     }
-    clazz
   }
 
   def notices(): View = {
@@ -106,17 +107,20 @@ class ClazzAction extends ActionSupport {
         val notice = entityDao.get(classOf[ClazzNotice], id)
         PopulateHelper.populate(notice, Params.sub("notice"))
     }
+
     notice.updatedAt = Instant.now
     val clazz = entityDao.get(classOf[Clazz], getLong("notice.clazz.id").getOrElse(0L))
-    notice.clazz = clazz
-    notice.updatedBy = entityDao.findBy(classOf[User], "code", List(Securities.user)).head
-    entityDao.saveOrUpdate(notice)
+    if (validOwnership(clazz)) {
+      notice.clazz = clazz
+      notice.updatedBy = entityDao.findBy(classOf[User], "code", List(Securities.user)).head
+      entityDao.saveOrUpdate(notice)
 
-    //保存附件
-    val parts = getAll("attachment", classOf[Part])
-    parts foreach { part =>
-      if (part.getSize > 0) {
-        clazzDocService.createNoticeFile(notice, part.getInputStream, part.getSubmittedFileName)
+      //保存附件
+      val parts = getAll("attachment", classOf[Part])
+      parts foreach { part =>
+        if (part.getSize > 0) {
+          clazzDocService.createNoticeFile(notice, part.getInputStream, part.getSubmittedFileName)
+        }
       }
     }
     redirect("notices", "clazz.id=" + notice.clazz.id, "info.save.success")
@@ -148,15 +152,17 @@ class ClazzAction extends ActionSupport {
 
   def saveDoc(): View = {
     val clazz = entityDao.get(classOf[Clazz], getLong("doc.clazz.id").getOrElse(0L))
-    val parts = getAll("attachment", classOf[Part])
-    var in: Option[InputStream] = None
-    var fileName: Option[String] = None
-    if (parts.nonEmpty && parts.head.getSize > 0) {
-      val part = parts.head
-      in = Some(part.getInputStream)
-      fileName = Some(part.getSubmittedFileName)
+    if (validOwnership(clazz)) {
+      val parts = getAll("attachment", classOf[Part])
+      var in: Option[InputStream] = None
+      var fileName: Option[String] = None
+      if (parts.nonEmpty && parts.head.getSize > 0) {
+        val part = parts.head
+        in = Some(part.getInputStream)
+        fileName = Some(part.getSubmittedFileName)
+      }
+      clazzDocService.createDoc(clazz, get("doc.name").get, get("doc.url"), in, fileName)
     }
-    clazzDocService.createDoc(clazz, get("doc.name").get, get("doc.url"), in, fileName)
     redirect("docs", "clazz.id=" + clazz.id, "info.save.success")
   }
 
@@ -271,18 +277,24 @@ class ClazzAction extends ActionSupport {
     forward()
   }
 
+  private def validOwnership(clazz: Clazz): Boolean = {
+    clazz.teachers.map(_.code).contains(Securities.user)
+  }
+
   def saveBulletin(): View = {
     val bulletin = getBulletin().getOrElse(new ClazzBulletin)
     val clazz: Clazz = ActionContext.current.attribute("clazz")
-    bulletin.clazz = clazz
-    bulletin.contents = get("bulletin.contents")
-    bulletin.contactQrcodePath = get("bulletin.contactQrcodePath")
-    entityDao.saveOrUpdate(bulletin)
+    if (null != clazz && validOwnership(clazz)) {
+      bulletin.clazz = clazz
+      bulletin.contents = get("bulletin.contents")
+      bulletin.contactQrcodePath = get("bulletin.contactQrcodePath")
+      entityDao.saveOrUpdate(bulletin)
 
-    val parts = getAll("attachment", classOf[Part])
-    if (parts.nonEmpty && parts.head.getSize > 0) {
-      val part = parts.head
-      clazzDocService.createBulletinFile(bulletin, part.getInputStream, part.getSubmittedFileName)
+      val parts = getAll("attachment", classOf[Part])
+      if (parts.nonEmpty && parts.head.getSize > 0) {
+        val part = parts.head
+        clazzDocService.createBulletinFile(bulletin, part.getInputStream, part.getSubmittedFileName)
+      }
     }
     redirect("bulletin", s"clazz.id=${bulletin.clazz.id}", "info.save.success")
   }
@@ -293,7 +305,9 @@ class ClazzAction extends ActionSupport {
       bulletin.contactQrcodePath foreach { p =>
         EmsApp.getBlobRepository(true).remove(p)
       }
-      entityDao.remove(bulletin)
+      if (validOwnership(bulletin.clazz)) {
+        entityDao.remove(bulletin)
+      }
     }
     redirect("bulletin", s"clazz.id=${bulletin.clazz.id}", "info.remove.success")
   }
@@ -368,21 +382,25 @@ class ClazzAction extends ActionSupport {
 
   def saveTeachingPlan(): View = {
     val plan = getTeachingPlan().get
-    plan.lessons foreach { lesson =>
-      var contents = get(s"lesson${lesson.id}.contents", "")
-      if Strings.isEmpty(contents) then contents = " "
-      lesson.contents = contents
-      lesson.remark = get(s"lesson${lesson.id}.remark")
+    if (validOwnership(plan.clazz)) {
+      plan.lessons foreach { lesson =>
+        var contents = get(s"lesson${lesson.id}.contents", "")
+        if Strings.isEmpty(contents) then contents = " "
+        lesson.contents = contents
+        lesson.remark = get(s"lesson${lesson.id}.remark")
+      }
+      entityDao.saveOrUpdate(plan)
     }
-    entityDao.saveOrUpdate(plan)
     redirect("teachingPlan", s"clazz.id=${plan.clazz.id}", "info.save.success")
   }
 
   def removeTeachingPlan(): View = {
     val plan = getTeachingPlan()
     val clazz: Clazz = ActionContext.current.attribute("clazz")
-    plan foreach { p =>
-      entityDao.remove(p)
+    if (null != clazz && validOwnership(clazz)) {
+      plan foreach { p =>
+        entityDao.remove(p)
+      }
     }
     redirect("teachingPlan", s"clazz.id=${clazz.id}", "info.remove.success")
   }
@@ -399,7 +417,6 @@ class ClazzAction extends ActionSupport {
     if (setting.placePublished) {
       put("rooms", clazz.schedule.activities.flatMap(_.rooms).map(_.name).mkString(" "))
     }
-    put("material", entityDao.findBy(classOf[ClazzMaterial], "clazz", clazz).headOption)
     val syllabusDocs = entityDao.findBy(classOf[SyllabusDoc], "course", clazz.course).filter(_.within(clazz.semester.beginOn))
     put("syllabusDocs", syllabusDocs)
 
