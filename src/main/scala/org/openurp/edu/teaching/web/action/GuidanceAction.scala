@@ -18,7 +18,7 @@
 package org.openurp.edu.teaching.web.action
 
 import org.beangle.commons.collection.Collections
-import org.beangle.commons.lang.Strings
+import org.beangle.commons.lang.{Numbers, Strings}
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.ems.app.Ems
 import org.beangle.ems.app.web.WebBusinessLogger
@@ -219,7 +219,8 @@ class GuidanceAction extends TeacherSupport {
               grade.getGaGrade(endGaType) foreach { gaGrade =>
                 val oldScore = gaGrade.score.getOrElse(-1f)
                 if (oldScore != score) {
-                  calculator.updateScore(gaGrade, Some(score), grade.gradingMode)
+                  //FIXME 强制保留最多两位小数
+                  calculator.updateScore(gaGrade, Some(Numbers.round(score, 2).floatValue), grade.gradingMode)
                   calculator.calcFinal(grade)
                   entityDao.saveOrUpdate(grade)
                   val msg =
