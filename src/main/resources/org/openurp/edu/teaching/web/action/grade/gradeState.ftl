@@ -52,7 +52,7 @@
           <tr align="center">
             <td>${state.gradeType.name}</td>
             <td>${state.gradingMode.name}</td>
-            <td>[#if state.scorePercent??]${(state.scorePercent)!}[/#if]</td>
+            <td>[#if state.weight??]${(state.weight)!}[/#if]</td>
             <td>${gradeStatus[state.status?string]!}</td>
             <td>${state.operator!}&nbsp;${(state.updatedAt?string('yyyy-MM-dd HH:mm:ss'))!}</td>
           </tr>

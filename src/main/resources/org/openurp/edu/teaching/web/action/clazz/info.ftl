@@ -21,39 +21,39 @@
       <table class="table table-sm" style="width:100%">
         <tr>
           <td class="title" width="10%">课程代码:</td>
-          <td class="content" width="23%">${clazz.course.code}</td>
+          <td width="23%">${clazz.course.code}</td>
           <td class="title" width="10%">课程名称:</td>
-          <td class="content"  width="24%"><a href="/edu/course/profile/info/"+clazz.course.id target="_blank">${clazz.course.name}[#if clazz.subject??]--${clazz.subject}[/#if]</a></td>
+          <td width="24%"><a href="/edu/course/profile/info/${clazz.course.id}" target="_blank">${clazz.course.name}[#if clazz.subject??]--${clazz.subject}[/#if]</a></td>
           <td class="title" width="10%">开课院系:</td>
-          <td class="content" width="23%">${clazz.teachDepart.name}</td>
+          <td width="23%">${clazz.teachDepart.name}</td>
         </tr>
         <tr>
           <td class="title" >学分:</td>
-          <td class="content" >${clazz.course.creditsInfo} </td>
+          <td>${clazz.course.creditsInfo} </td>
           <td class="title" >课程英文名:</td>
-          <td class="content" colspan="3">${clazz.course.enName!'--'}</td>
+          <td colspan="3">${clazz.course.enName!'--'}</td>
         </tr>
         <tr>
           <td class="title">课程类别:</td>
-          <td class="content">${clazz.courseType.name}</td>
+          <td>${clazz.courseType.name}</td>
           <td class="title">校区:</td>
-          <td class="content">${clazz.campus.name}</td>
+          <td>${clazz.campus.name}</td>
           <td class="title">考核方式:</td>
-          <td class="content">${(clazz.examMode.name)!}</td>
+          <td>${(clazz.examMode.name)!}</td>
         </tr>
         <tr>
           <td class="title">授课语言:</td>
-          <td class="content">${clazz.langType.name}</td>
+          <td>${clazz.langType.name}</td>
           <td class="title">任课教师:</td>
-          <td class="content">[#list clazz.teachers as teacher]${teacher.name}[#sep]&nbsp;[/#list]</td>
+          <td>[#list clazz.teachers as teacher]${teacher.name}[#sep]&nbsp;[/#list]</td>
           <td class="title">课程标签:</td>
-          <td class="content">[#list clazz.tags as tag]${tag.name}[#sep]&nbsp;[/#list]</td>
+          <td>[#list clazz.tags as tag]${tag.name}[#sep]&nbsp;[/#list]</td>
         </tr>
         <tr>
          <td class="title">教材选用类型:</td>
-         <td class="content">[#if material??]${(material.adoption.title)!}[/#if]</td>
+         <td>[#if material??]${(material.adoption.title)!}[/#if]</td>
          <td class="title">教学大纲</td>
-         <td class="content" colspan="3">
+         <td colspan="3">
           [#list syllabusDocs as doc]
            <span class="text-muted"> ${doc.writer.name} ${doc.updatedAt?string("yyyy-MM-dd")}</span>
           [@b.a href="/edu/course/profile/info/attachment?doc.id="+doc.id target="_blank"]<span class="text-muted">${doc.docSize/1024.0}K</span><i class="fa-solid fa-paperclip"></i>下载&nbsp;[/@]
@@ -64,7 +64,7 @@
         [#if material?? && material.books?size>0]
         <tr>
           <td class="title">教材:</td>
-          <td class="content" colspan="5">
+          <td colspan="5">
             [#list material.books as b]
               ${b.name} ${(b.press.name)!} ISBN:${b.isbn} 作者：${b.author!} 版次：${b.edition} 出版年月：${b.publishedOn?string("yyyy-MM")}[#if b_has_next]<br>[/#if]
             [/#list]
@@ -74,7 +74,7 @@
         [#if (material.bibliography)??]
         <tr>
           <td class="title">参考书目:</td>
-          <td class="content" colspan="5">
+          <td colspan="5">
             ${material.bibliography!}
           </td>
         </tr>
@@ -82,7 +82,7 @@
         [#if (material.bibliography)??]
         <tr>
           <td class="title">其他教学资源:</td>
-          <td class="content" colspan="5">
+          <td colspan="5">
             ${material.materials!}
           </td>
         </tr>
@@ -99,30 +99,30 @@
       <table class="table table-sm" style="width:100%">
         <tr>
           <td class="title" width="10%">总课时:</td>
-          <td class="content" width="23%">${(clazz.schedule.creditHours)!}</td>
+          <td width="23%">${(clazz.schedule.creditHours)!}</td>
           <td class="title" width="10%">周课时:</td>
-          <td class="content" width="24%">${clazz.schedule.weekHours?string('#.##')}</td>
+          <td width="24%">${clazz.schedule.weekHours?string('#.##')}</td>
           <td class="title" width="10%">起止周:</td>
-          <td class="content" width="23%">${(clazz.schedule.firstWeek)!}~${(clazz.schedule.lastWeek)!}</td>
+          <td width="23%">${(clazz.schedule.firstWeek)!}~${(clazz.schedule.lastWeek)!}</td>
         </tr>
         <tr>
           <td class="title">首次上课:</td>
-          <td class="content">[#if schedule??]${(clazz.schedule.firstDateTime?string('yyyy-MM-dd HH:mm'))!}[/#if]</td>
+          <td>[#if schedule??]${(clazz.schedule.firstDateTime?string('yyyy-MM-dd HH:mm'))!}[/#if]</td>
           <td class="title">课程安排:</td>
-          <td class="content">${schedule!'--'}</td>
+          <td>${schedule!'--'}</td>
           <td class="title">上课教室:</td>
-          <td class="content">${rooms!"--"}</td>
+          <td>${rooms!"--"}</td>
         </tr>
         [#if examActivities?size>0]
         [#list examActivities as ea]
         [#if ea.publishState.timePublished]
         <tr>
           <td class="title">${ea.examType.name}:</td>
-          <td class="content">${ea.examOn?string("yyyy-MM-dd")} ${ea.beginAt}</td>
+          <td>${ea.examOn?string("yyyy-MM-dd")} ${ea.beginAt}</td>
           <td class="title">人数:</td>
-          <td class="content">${ea.stdCount}</td>
+          <td>${ea.stdCount}</td>
           <td class="title">考试教室:</td>
-          <td class="content">[#if ea.publishState.timePublished][#list ea.rooms as er]${er.room.name}[#sep]&nbsp;[/#list][/#if]</td>
+          <td>[#if ea.publishState.timePublished][#list ea.rooms as er]${er.room.name}[#sep]&nbsp;[/#list][/#if]</td>
         </tr>
         [/#if]
         [/#list]
@@ -145,11 +145,11 @@
       <table class="table table-sm" style="width:100%">
         <tr>
           <td class="title" width="10%">年级:</td>
-          <td class="content"  width="23%">${clazz.enrollment.grades!}</td>
+          <td  width="23%">${clazz.enrollment.grades!}</td>
           <td class="title" width="10%">人数上限:</td>
-          <td class="content"  width="24%">${clazz.enrollment.capacity}</td>
+          <td  width="24%">${clazz.enrollment.capacity}</td>
           <td class="title" width="10%">实际人数:</td>
-          <td class="content"  width="24%">${clazz.enrollment.stdCount}</td>
+          <td  width="24%">${clazz.enrollment.stdCount}</td>
         </tr>
         <tr>
           <td class="title">授课对象:</td>

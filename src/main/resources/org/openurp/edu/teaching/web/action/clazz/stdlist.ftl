@@ -27,7 +27,7 @@
           <td>${taker_index+1}</td>
           <td>${taker.std.code}</td>
           <td>${taker.std.name}[#if taker.takeType.id != 1]<sup style="color:red">${taker.takeType.name}</sup>[/#if]</td>
-          [#if tutorSupported]<td>${(taker.std.tutor.name)!}</td>[/#if]
+          [#if tutorSupported]<td>${(taker.std.majorTutorNames)!}</td>[/#if]
           <td>${taker.std.state.department.name}</td>
           <td>${(taker.std.state.major.name)!} ${(taker.std.state.direction.name)!}</td>
         </tr>

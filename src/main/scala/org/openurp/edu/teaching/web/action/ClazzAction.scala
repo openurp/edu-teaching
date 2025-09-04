@@ -234,8 +234,8 @@ class ClazzAction extends ActionSupport {
         }
       }
       stds.foreach { std =>
-        std.tutor.foreach { t =>
-          tutors.put(std, t.name)
+        if (std.majorTutors.nonEmpty) {
+          tutors.put(std, std.majorTutorNames)
         }
       }
       val course = clazz.course

@@ -27,12 +27,12 @@
             ${gradeType.name}:
           </td>
           [#if ((gradeTypeState.confirmed)!false) || ((gaGradeTypeState.confirmed)!false)]
-          <td style="border-bottom-width:1px;border-bottom-color:black;border-bottom-style:solid;text-align:center" width="100px">${(gradeTypeState.scorePercent)!}</td>
+          <td style="border-bottom-width:1px;border-bottom-color:black;border-bottom-style:solid;text-align:center" width="100px">${(gradeTypeState.weight)!}</td>
           [#else]
           <td>
-            <input type="text" name="examGradeState${gradeType.id}.scorePercent" value="${(gradeTypeState.scorePercent)!}" style="width:100px;text-align:right" maxlength="3"
+            <input type="text" name="examGradeState${gradeType.id}.weight" value="${(gradeTypeState.weight)!}" style="width:100px;text-align:right" maxlength="3"
                    placeholder="占比" data-toggle="popover" data-trigger="focus" title="录入小贴士"
-                   data-content="[#if (gradeTypeState.scorePercent!0)<100]例如30,40等百分数占比。录入该项分数时，请录入折算前的原始分数。例如${gradeType.name}90分，占比30%，需要录入90分，不要录入27分。[#else]请将平时成绩和考核成绩折算后录入[/#if]"
+                   data-content="[#if (gradeTypeState.weight!0)<100]例如30,40等百分数占比。录入该项分数时，请录入折算前的原始分数。例如${gradeType.name}90分，占比30%，需要录入90分，不要录入27分。[#else]请将平时成绩和考核成绩折算后录入[/#if]"
               />
           </td>
           [/#if]
@@ -48,7 +48,7 @@
             [#if ((gradeTypeState.confirmed)!false) || ((gaGradeTypeState.confirmed)!false)]
              [@small_stateinfo status=(gradeTypeState.status!0)/]
             [#else]
-            [#if  (gradeTypeState.scorePercent!0)<100]<div>请直接录入<span style='color: red;'>原始分数</span>，不要折算。</div>[#else]请将平时成绩和考核成绩折算后录入[/#if]
+            [#if  (gradeTypeState.weight!0)<100]<div>请直接录入<span style='color: red;'>原始分数</span>，不要折算。</div>[#else]请将平时成绩和考核成绩折算后录入[/#if]
             [/#if]
           </td>
         </tr>
@@ -95,9 +95,9 @@
     [#if gradeState.getState(gradeType)??]
     [#assign gradeTypeState = gradeState.getState(gradeType)]
     [#if gradeTypeState.confirmed]
-    onePercent = ${gradeTypeState.scorePercent!0}
+    onePercent = ${gradeTypeState.weight!0}
     [#else]
-    onePercent = form2["examGradeState${gradeType.id}.scorePercent"].value;
+    onePercent = form2["examGradeState${gradeType.id}.weight"].value;
     [/#if]
     if("" != onePercent ){
       if(!/^\d+$/.test(onePercent)){

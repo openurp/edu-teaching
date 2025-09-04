@@ -107,15 +107,15 @@
              [#assign term=stdGroupTerms["${std.id}_${group.name}"]!0/]
              [#if term>0]
               [#if group.matched(std,teacher)]
-             [#assign course =group.getCourse(term?int)/]
-             [#assign tabIndex=(std_index+1)+group_index*stds?size/]
-               [#if ((gradeMap.get(course).get(std).score)!0)>0]
-               ${((gradeMap.get(course).get(std).score)!0)} 第${term}学期 ${course.name}
-               [#else]
-               <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}"  tabIndex="${tabIndex}" style="width:50px">第${term}学期 ${course.name}
-               [/#if]
+                [#assign course = group.getCourse(term?int)/]
+                [#assign tabIndex=(std_index+1)+group_index*stds?size/]
+                [#if ((gradeMap.get(course).get(std).score)!0)>0]
+                 ${((gradeMap.get(course).get(std).score)!0)} 第${term}学期 ${course.name}
+                [#else]
+                 <input name="${std.id}_${course.id}.score" value="${(gradeMap.get(course).get(std).score)!}"  tabIndex="${tabIndex}" style="width:50px">第${term}学期 ${course.name}
+                [/#if]
               [#else]
-              [#if ((std.tutor.name)!'') != teacher.name]导师 ${(std.tutor.name)!}[/#if][#if ((std.advisor.name)!'') != teacher.name]论文导师 ${(std.advisor.name)!}[/#if]
+                [#if !std.majorTutors?seq_contains(teacher)]导师 ${(std.majorTutorNames)!}[/#if][#if ((std.thesisTutor.name)!'') != teacher.name]论文导师 ${(std.thesisTutor.name)!}[/#if]
               [/#if]
              [/#if]
            </td>

@@ -151,7 +151,7 @@ class GradeAction extends TeacherSupport {
 
     val state = clazzGradeService.getOrCreateState(clazz, gradeTypes, None, None)
     if (setting.gaElementTypes.size == 1) {
-      state.getState(setting.gaElementTypes.head).asInstanceOf[ExamGradeState].scorePercent = Some(100)
+      state.getState(setting.gaElementTypes.head).asInstanceOf[ExamGradeState].weight = Some(100)
     }
     put("gradeState", state)
     putGradeConsts()
@@ -253,7 +253,7 @@ class GradeAction extends TeacherSupport {
             grade.getExamGrade(gt) foreach { eg =>
               gradeState.getState(gt) match {
                 case null => grade.examGrades -= eg
-                case egs: ExamGradeState => if (egs.scorePercent.getOrElse(0) == 0) grade.examGrades -= eg
+                case egs: ExamGradeState => if (egs.weight.getOrElse(0) == 0) grade.examGrades -= eg
               }
             }
           }

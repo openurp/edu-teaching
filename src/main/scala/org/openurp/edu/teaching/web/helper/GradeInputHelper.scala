@@ -103,10 +103,10 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
     var updatePercent = false
     for (gradeType <- gradeTypes; if !gradeType.isGa) {
       val prefix = "examGradeState" + gradeType.id
-      Params.getShort(prefix + ".scorePercent").foreach { percent =>
+      Params.getShort(prefix + ".weight").foreach { percent =>
         val egs = GradingModeStrategy.getOrCreateState(gradeState, gradeType).asInstanceOf[ExamGradeState]
-        if (egs.scorePercent.isEmpty || percent != egs.scorePercent.get) {
-          egs.scorePercent = Some(percent)
+        if (egs.weight.isEmpty || percent != egs.weight.get) {
+          egs.weight = Some(percent)
           updatePercent = true
         }
         Params.getInt(prefix + ".gradingMode.id") foreach { examGradingModeId =>
@@ -146,7 +146,7 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
       if (!gradeType.isGa) {
         val egs = gradeState.getState(gradeType).asInstanceOf[ExamGradeState]
         var percent = Params.getShort("personPercent_" + gradeType.id + "_" + taker.std.id)
-        if (percent.isEmpty && egs.scorePercent.nonEmpty) percent = egs.scorePercent
+        if (percent.isEmpty && egs.weight.nonEmpty) percent = egs.weight
         buildExamGrade(grade, gradeType, egs.gradingMode, taker, status, percent, updatedAt, operator)
       }
     }
@@ -191,7 +191,7 @@ class GradeInputHelper(private val entityDao: EntityDao, private val calculator:
     }
     examGrade.status = status
     grade.updatedAt = updatedAt
-    examGrade.scorePercent = percent
+    examGrade.weight = percent
     examGrade.examStatus = examStatus
     calculator.updateScore(examGrade, examScore, gradingMode)
   }

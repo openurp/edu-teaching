@@ -87,7 +87,7 @@ table.reportFoot.tr {
       <td align="left">开课院系:${report.clazz.teachDepart.name}</td>
       <td colspan="3">成绩类型:
         [#list report.gradeTypes as gradeType]
-        [#if (report.gradeState.getState(gradeType).scorePercent)??]&nbsp;${(gradeType.name)!}(${report.gradeState.getState(gradeType).scorePercent}％)[/#if]
+        [#if (report.gradeState.getState(gradeType).weight)??]&nbsp;${(gradeType.name)!}(${report.gradeState.getState(gradeType).weight}％)[/#if]
         [/#list]
       </td>
     </tr>

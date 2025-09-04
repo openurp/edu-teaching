@@ -28,10 +28,11 @@ import org.openurp.base.edu.model.{Course, Terms}
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester}
 import org.openurp.base.service.TermCalculator
-import org.openurp.base.std.model.Student
+import org.openurp.base.std.model.{Student, StudentTutor}
 import org.openurp.code.edu.model.{CourseTakeType, GradeType, GradingMode}
 import org.openurp.edu.grade.model.{CourseGrade, Grade}
 import org.openurp.edu.grade.service.CourseGradeCalculator
+import org.openurp.edu.service.Features
 import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.{Instant, LocalDate}
@@ -155,9 +156,10 @@ class GuidanceAction extends TeacherSupport {
    * @return
    */
   private def getStds(teacher: Teacher, semester: Semester): Seq[Student] = {
-    val stdQuery = OqlBuilder.from(classOf[Student], "std").where("std.tutor=:me or std.advisor=:me", teacher)
-    stdQuery.where("std.beginOn < :endOn and :beginOn < std.endOn", semester.endOn, semester.beginOn)
-    stdQuery.orderBy("std.state.grade.code,std.code")
+    val stdQuery = OqlBuilder.from[Student](classOf[StudentTutor].getName, "st").where("st.tutor=:me", teacher)
+    stdQuery.where("st.std.beginOn < :endOn and :beginOn < st.std.endOn", semester.endOn, semester.beginOn)
+    stdQuery.orderBy("st.std.state.grade.code,st.std.code")
+    stdQuery.select("st.std")
     entityDao.search(stdQuery)
   }
 
@@ -219,8 +221,9 @@ class GuidanceAction extends TeacherSupport {
               grade.getGaGrade(endGaType) foreach { gaGrade =>
                 val oldScore = gaGrade.score.getOrElse(-1f)
                 if (oldScore != score) {
-                  //FIXME 强制保留最多两位小数
-                  calculator.updateScore(gaGrade, Some(Numbers.round(score, 2).floatValue), grade.gradingMode)
+                  given project: Project = std.project
+                  val precision = getConfig(Features.Grade.ScorePrecision.name, 2)
+                  calculator.updateScore(gaGrade, Some(Numbers.round(score, precision).floatValue), grade.gradingMode)
                   calculator.calcFinal(grade)
                   entityDao.saveOrUpdate(grade)
                   val msg =
@@ -253,9 +256,9 @@ class GuidanceCourseGroup(val name: String, val courseTerms: Map[Course, Terms])
 
   def matched(std: Student, teacher: Teacher): Boolean = {
     if (name == "主课") {
-      std.tutor.contains(teacher)
+      std.majorTutors.contains(teacher)
     } else {
-      std.tutor.contains(teacher) && std.advisor.isEmpty || std.advisor.contains(teacher)
+      std.majorTutors.contains(teacher) && std.thesisTutor.isEmpty || std.thesisTutor.contains(teacher)
     }
   }
 }

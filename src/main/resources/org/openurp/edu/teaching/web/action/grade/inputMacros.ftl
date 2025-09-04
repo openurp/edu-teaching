@@ -110,7 +110,7 @@
   gradeTable = new GradeTable();
   gradeTable.calcGaUrl="${b.url('ga-calculator')}";
   [#list inputGradeTypes as gradeType]
-  gradeTable.gradeStates[${gradeType_index}] ={"gradeTypeId":"${(gradeType.id)!}","name":"${gradeType.name}","scorePercent":${(gradeState.getPercent(gradeType))?default("null")},"inputable":true}
+  gradeTable.gradeStates[${gradeType_index}] ={"gradeTypeId":"${(gradeType.id)!}","name":"${gradeType.name}","weight":${(gradeState.getPercent(gradeType))?default("null")},"inputable":true}
   [/#list]
 
   gradeTable.precision=${gradeState.scorePrecision};

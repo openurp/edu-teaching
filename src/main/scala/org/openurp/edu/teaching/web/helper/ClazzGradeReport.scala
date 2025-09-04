@@ -27,7 +27,7 @@ object ClazzGradeReport {
   def build(gradeState: CourseGradeState, courseGrades: Seq[CourseGrade], isEndGa: Boolean, setting: CourseGradeSetting, pageSize: Int): Seq[ClazzGradeReport] = {
     if (isEndGa) {
       val grades = courseGrades.sortBy(_.std.code)
-      val elemTypes = gradeState.examStates.filter(x => setting.gaElementTypes.contains(x.gradeType) && x.scorePercent.isDefined).map(_.gradeType)
+      val elemTypes = gradeState.examStates.filter(x => setting.gaElementTypes.contains(x.gradeType) && x.weight.isDefined).map(_.gradeType)
       val gradeTypes = elemTypes.toBuffer.sortBy(_.code).addOne(gradeState.getState(new GradeType(GradeType.EndGa)).gradeType)
       Collections.split(grades.toList, pageSize) map { grades =>
         ClazzGradeReport(gradeState.clazz, gradeState, grades, gradeTypes)
