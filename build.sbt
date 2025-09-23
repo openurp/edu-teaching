@@ -22,7 +22,7 @@ ThisBuild / developers := List(
 ThisBuild / description := "OpenURP Edu Teaching"
 ThisBuild / homepage := Some(url("http://openurp.github.io/edu-teaching/index.html"))
 
-val apiVer = "0.46.0"
+val apiVer = "0.46.1-SNAPSHOT"
 val starterVer = "0.4.0"
 val baseVer = "0.4.55"
 val eduCoreVer = "0.3.16"

@@ -15,22 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.openurp.edu.teaching.web.action
+package org.openurp.edu.teaching.web.helper
 
-import org.beangle.commons.cdi.BindModule
+import org.openurp.base.std.model.Student
 
-class DefaultModule extends BindModule {
+class StudentStateHelper {
 
-  override def binding(): Unit = {
-    bind(classOf[CoursetableAction])
-    bind(classOf[ClazzAction])
-
-    bind(classOf[GradeAction])
-    bind(classOf[ExamAction])
-    bind(classOf[PlanAction])
-
-    bind(classOf[GuidanceAction])
-    bind(classOf[MiniAction], classOf[MiniCoachAction])
-    bind(classOf[GaCalculatorAction])
+  def isInschool(std: Student, beginOn: java.sql.Date, endOn: java.sql.Date): Boolean = {
+    std.isInschool(beginOn.toLocalDate, endOn.toLocalDate)
   }
 }

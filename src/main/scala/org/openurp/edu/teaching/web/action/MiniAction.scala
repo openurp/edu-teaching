@@ -17,12 +17,14 @@
 
 package org.openurp.edu.teaching.web.action
 
+import org.beangle.commons.bean.orderings.CollatorOrdering
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.Strings
 import org.beangle.commons.lang.time.WeekDay
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.ems.app.Ems
 import org.beangle.ems.app.web.WebBusinessLogger
+import org.beangle.webmvc.context.ActionContext
 import org.beangle.webmvc.view.View
 import org.openurp.base.edu.model.{Course, CourseUnit, Terms}
 import org.openurp.base.edu.service.TimeSettingService
@@ -32,8 +34,7 @@ import org.openurp.base.service.TermCalculator
 import org.openurp.base.std.model.{Student, StudentTutor}
 import org.openurp.edu.clazz.domain.{ClazzProvider, WeekTimeBuilder}
 import org.openurp.edu.clazz.model.{MiniClazz, MiniClazzActivity}
-import org.openurp.edu.grade.service.CourseGradeCalculator
-import org.openurp.edu.teaching.web.helper.OccupyHelper
+import org.openurp.edu.teaching.web.helper.{OccupyHelper, StudentStateHelper}
 import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.LocalDate
@@ -43,7 +44,6 @@ import java.time.LocalDate
  */
 class MiniAction extends TeacherSupport {
   var businessLogger: WebBusinessLogger = _
-  var calculator: CourseGradeCalculator = _
   var timeSettingServie: TimeSettingService = _
   var clazzProvider: ClazzProvider = _
 
@@ -68,7 +68,7 @@ class MiniAction extends TeacherSupport {
         activeStds.add(std)
       }
     }
-    put("stds", activeStds.toSeq.sortBy(x => x.grade.code + x.code))
+    put("stds", activeStds.toSeq.sortBy(x => x.grade.code + x.name)(new CollatorOrdering(true)))
     put("stdGroupTerms", groupTerms)
 
     if (stds.nonEmpty) {
@@ -90,6 +90,7 @@ class MiniAction extends TeacherSupport {
     put("EmsApi", Ems.api)
     val setting = timeSettingServie.get(project, semester, None)
     put("units", setting.units.sortBy(_.beginAt))
+    put("studentStateHelper", new StudentStateHelper())
     forward()
   }
 
@@ -101,7 +102,7 @@ class MiniAction extends TeacherSupport {
     val std = entityDao.get(classOf[Student], getLongId("std"))
     val course = entityDao.get(classOf[Course], getLongId("course"))
     val semester = entityDao.get(classOf[Semester], getIntId("semester"))
-    var activity: MiniClazzActivity = new MiniClazzActivity
+    var activity = new MiniClazzActivity
 
     val query = OqlBuilder.from(classOf[MiniClazz], "clazz")
     query.where("clazz.semester=:semester and clazz.course=:course", semester, course)
@@ -148,8 +149,10 @@ class MiniAction extends TeacherSupport {
         case None => entityDao.remove(clazz)
         case Some(unit) =>
           clazz.activities.subtractAll(clazz.activities.filter(x => s"${x.time.weekday.id}_${x.beginUnit}_${x.endUnit}" == unit))
+          clazz.calcHours()
           entityDao.saveOrUpdate(clazz)
       }
+      businessLogger.info(s"删除了${clazz.crn}的主课安排", clazz.id, ActionContext.current.params)
     }
     redirect("index", "删除成功")
   }
@@ -170,6 +173,7 @@ class MiniAction extends TeacherSupport {
       case None =>
         val newClzz = new MiniClazz(std.code, std.project, semester, course)
         newClzz.stds.addOne(std)
+        newClzz.teachDepart = std.department
         newClzz.teacher = Some(me)
         newClzz
 
@@ -185,7 +189,7 @@ class MiniAction extends TeacherSupport {
 
     val places = get("places")
     val builder = WeekTimeBuilder.on(semester)
-    val times = builder.build(WeekDay.of(weekday), 1 to 17)
+    val times = builder.build(WeekDay.of(weekday), 1 to 18)
     val newActivities = Collections.newBuffer[MiniClazzActivity]
 
     times.foreach { time =>
@@ -213,7 +217,10 @@ class MiniAction extends TeacherSupport {
       clazz.activities.subtractOne(itor.next())
     }
     clazz.activities.addAll(newActivities)
+    clazz.calcHours()
     entityDao.saveOrUpdate(clazz)
+
+    businessLogger.info(s"设置了${std.name}的主课安排", clazz.id, ActionContext.current.params)
     redirect("index", "保存成功")
   }
 
@@ -225,7 +232,6 @@ class MiniAction extends TeacherSupport {
    */
   private def calcTerm(std: Student, semester: Semester): Int = {
     val project = std.project
-
     if (!isStuding(std, semester.beginOn.plusDays(20), semester.endOn.minusDays(20))) return 0
     val sp = semesterService.get(project, std.beginOn, semester.endOn)
     val semesters = Collections.newBuffer[Semester]
@@ -242,9 +248,10 @@ class MiniAction extends TeacherSupport {
 
   private def isStuding(std: Student, beginOn: LocalDate, endOn: LocalDate): Boolean = {
     val states = std.states.filter(x => x.beginOn.isBefore(endOn) && beginOn.isBefore(x.endOn))
-    if states.exists(_.inschool) then true
-    else
-      states.exists(x => x.remark.getOrElse("").contains("交流") || x.remark.getOrElse("").contains("交换"))
+    states.exists(_.inschool)
+    //    if states.exists(_.inschool) then true
+    //    else
+    //      states.exists(x => x.remark.getOrElse("").contains("交流") || x.remark.getOrElse("").contains("交换"))
   }
 
   private def getGuidanceGroup(project: Project): GuidanceCourseGroup = {
