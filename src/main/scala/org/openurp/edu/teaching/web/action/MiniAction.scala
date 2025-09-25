@@ -218,6 +218,7 @@ class MiniAction extends TeacherSupport {
     }
     clazz.activities.addAll(newActivities)
     clazz.calcHours()
+    clazz.teacher = Some(me)
     entityDao.saveOrUpdate(clazz)
 
     businessLogger.info(s"设置了${std.name}的主课安排", clazz.id, ActionContext.current.params)

@@ -20,8 +20,8 @@ package org.openurp.edu.teaching.web.action
 import jakarta.servlet.http.Part
 import org.beangle.commons.codec.digest.Digests
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.lang.Strings
 import org.beangle.commons.lang.time.HourMinute
-import org.beangle.commons.lang.{ClassLoaders, Strings}
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.doc.transfer.Format
 import org.beangle.doc.transfer.exporter.{ExcelTemplateExporter, ExportContext}
@@ -44,6 +44,7 @@ import org.openurp.edu.clazz.service.ClazzDocService
 import org.openurp.edu.course.model.{ClazzPlan, Lesson, SyllabusDoc}
 import org.openurp.edu.exam.model.ExamActivity
 import org.openurp.edu.schedule.service.ScheduleDigestor
+import org.openurp.edu.teaching.web.helper.WebResources
 import org.openurp.starter.web.helper.ProjectProfile
 
 import java.io.InputStream
@@ -221,7 +222,8 @@ class ClazzAction extends ActionSupport {
       val context = new ExportContext(Format.Xlsx)
       val response = ActionContext.current.response
       context.exporter = new ExcelTemplateExporter()
-      context.template = ClassLoaders.getResource("org/openurp/edu/teaching/components/rollbook.xlsx").get
+      val project = clazz.project
+      context.template = WebResources.getRollbook(project).get
       RequestUtils.setContentDisposition(response, clazz.crn + "点名册.xlsx")
 
       val stds = clazz.enrollment.courseTakers.map(_.std).sortBy(_.code)
