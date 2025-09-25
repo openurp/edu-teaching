@@ -74,16 +74,16 @@
               items=units value=(setting.getUnit(activity.endUnit))! option=r"${item.name} (${item.beginAt}~${item.endAt})"  required="true"/]
 
           [@b.textfield label="授课地点" name="places" value=(activity.places)! required="true"/]
-          [@b.textfield label="艺术辅导老师1" name="advisor1.name" id="advisor1_name" value=(activity.advisor1.name)!
-                        onchange="searchUser(this,'advisor1_id');" style="width:200px" placeholder="输入姓名搜索" ]
-            <select name="advisor1.id" id="advisor1_id" style="width:200px" onchange="updateName(this,'advisor1_name')">
-              <option value="${(activity.advisor1.id)!}">${(activity.advisor1.name)!}</option>
+          [@b.textfield label="艺术辅导老师1" name="coach1.name" id="coach1_name" value=(activity.coach1.name)!
+                        onchange="searchUser(this,'coach1_id');" style="width:200px" placeholder="输入姓名搜索" ]
+            <select name="coach1.id" id="coach1_id" style="width:200px" onchange="updateName(this,'coach1_name')">
+              <option value="${(activity.coach1.id)!}">${(activity.coach1.name)!}</option>
             </select>
           [/@]
-          [@b.textfield label="艺术辅导老师2" name="advisor1.name" id="advisor2_name" value=(activity.advisor2.name)!
-                        onchange="searchUser(this,'advisor2_id');" style="width:200px" placeholder="输入姓名搜索"]
-            <select name="advisor2.id" id="advisor2_id" style="width:200px" onchange="updateName(this,'advisor2_name')">
-              <option value="${(activity.advisor2.id)!}">${(activity.advisor2.name)!}</option>
+          [@b.textfield label="艺术辅导老师2" name="coach1.name" id="coach2_name" value=(activity.coach2.name)!
+                        onchange="searchUser(this,'coach2_id');" style="width:200px" placeholder="输入姓名搜索"]
+            <select name="coach2.id" id="coach2_id" style="width:200px" onchange="updateName(this,'coach2_name')">
+              <option value="${(activity.coach2.id)!}">${(activity.coach2.name)!}</option>
             </select>
           [/@]
           [@b.formfoot]

@@ -18,7 +18,9 @@
 package org.openurp.edu.teaching.web.helper
 
 import org.beangle.commons.collection.Collections
+import org.beangle.commons.lang.time.WeekTime
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.beangle.data.model.pojo.Named
 import org.openurp.base.edu.model.Course
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester, User}
@@ -29,11 +31,11 @@ import org.openurp.edu.clazz.model.{MiniClazz, MiniClazzActivity}
 
 import scala.collection.mutable
 
-class OccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) {
+class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) {
   var maxWeekday = 5
   var maxUnit = 0
 
-  def merge(m1: collection.Map[String, String], m2: collection.Map[String, String]): collection.Map[String, String] = {
+  def mergeOccupy(m1: collection.Map[String, String], m2: collection.Map[String, String]): collection.Map[String, String] = {
     val rs = new mutable.HashMap[String, String]
     rs.addAll(m1)
     m2 foreach { case (k, v) =>
@@ -45,49 +47,80 @@ class OccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) {
     rs
   }
 
+  def mergeActivities(m1: collection.Map[String, collection.Seq[Activity]],
+                      m2: collection.Map[String, collection.Seq[Activity]]): collection.Map[String, collection.Seq[Activity]] = {
+    val rs = new mutable.HashMap[String, collection.Seq[Activity]]
+    rs.addAll(m1)
+    m2 foreach { case (k, v) =>
+      rs.get(k) match {
+        case None => rs.put(k, v)
+        case Some(v2) => if (v != v2) rs.put(k, v ++ v2)
+      }
+    }
+    rs
+  }
+
   def getCoachMiniOccupy(project: Project, semester: Semester, coach: User): collection.Map[String, String] = {
     val q = OqlBuilder.from[MiniClazz](classOf[MiniClazzActivity].getName, "activity")
     q.where("activity.miniClazz.semester=:semester", semester)
-    q.where("activity.advisor1 = :me or activity.advisor2 = :me", coach)
+    q.where("activity.coach1 = :me or activity.coach2 = :me", coach)
     q.select("distinct activity.miniClazz")
-    val clazzes = entityDao.search(q)
-
-    getCoachMiniOccupy(coach, clazzes)
+    getCoachMiniOccupy(coach, entityDao.search(q))
   }
 
   def getCoachMiniOccupy(coach: User, clazzes: Iterable[MiniClazz]): collection.Map[String, String] = {
+    val activities = getCoachMiniActivities(coach, clazzes)
+    activities.map(x => (x._1, x._2.map(_.comments).mkString(",")))
+  }
+
+  def getCoachMiniActivities(project: Project, semester: Semester, coach: User): collection.Map[String, collection.Seq[Activity]] = {
+    val q = OqlBuilder.from[MiniClazz](classOf[MiniClazzActivity].getName, "activity")
+    q.where("activity.miniClazz.semester=:semester", semester)
+    q.where("activity.coach1 = :me or activity.coach2 = :me", coach)
+    q.select("distinct activity.miniClazz")
+    getCoachMiniActivities(coach, entityDao.search(q))
+  }
+
+  def getCoachMiniActivities(coach: User, clazzes: Iterable[MiniClazz]): collection.Map[String, collection.Seq[Activity]] = {
     val activities = clazzes.flatMap(_.activities)
-    val miniOccupyMap = Collections.newMap[String, mutable.Set[Student]]
+    val activitiesMap = Collections.newMap[String, mutable.Buffer[Activity]]
     activities foreach { a =>
-      if (a.advisor1.contains(coach) || a.advisor2.contains(coach)) {
+      if (a.coach1.contains(coach) || a.coach2.contains(coach)) {
         val weekdayId = a.time.weekday.id
         if weekdayId > maxWeekday then maxWeekday = weekdayId
         (a.beginUnit.intValue to a.endUnit.intValue) foreach { u =>
           if u > maxUnit then maxUnit = u
-          miniOccupyMap.getOrElseUpdate(s"${weekdayId}_${u}", new mutable.HashSet[Student]).addAll(a.miniClazz.stds)
+          activitiesMap.getOrElseUpdate(s"${weekdayId}_${u}", new mutable.ArrayBuffer[Activity]).addOne(newCoachActivity(a))
         }
       }
     }
-    miniOccupyMap.map(x => (x._1, x._2.map(_.name).mkString(",")))
+    activitiesMap
   }
 
   def getTeacherMiniOccupy(project: Project, semester: Semester, teacher: Teacher): collection.Map[String, String] = {
+    val activities = getTeacherMiniActivities(project, semester, teacher)
+    activities.map(x => (x._1, x._2.map(_.comments).mkString(",")))
+  }
+
+  def getTeacherMiniActivities(project: Project, semester: Semester, teacher: Teacher): collection.Map[String, collection.Seq[Activity]] = {
     val query = OqlBuilder.from(classOf[MiniClazz], "clazz")
     query.where("clazz.semester=:semester", semester)
     query.where("clazz.teacher=:me", teacher)
     val clazzes = entityDao.search(query)
-    val miniOccupyMap = Collections.newMap[String, mutable.Set[Student]]
+    val activitiesMap = Collections.newMap[String, mutable.Buffer[Activity]]
     clazzes foreach { clazz =>
       clazz.activities foreach { a =>
-        val weekdayId = a.time.weekday.id
-        if weekdayId > maxWeekday then maxWeekday = weekdayId
-        (a.beginUnit.intValue to a.endUnit.intValue) foreach { u =>
-          if u > maxUnit then maxUnit = u
-          miniOccupyMap.getOrElseUpdate(s"${weekdayId}_${u}", new mutable.HashSet[Student]).addAll(clazz.stds)
+        if (a.teacher.contains(teacher)) {
+          val weekdayId = a.time.weekday.id
+          if weekdayId > maxWeekday then maxWeekday = weekdayId
+          (a.beginUnit.intValue to a.endUnit.intValue) foreach { u =>
+            if u > maxUnit then maxUnit = u
+            activitiesMap.getOrElseUpdate(s"${weekdayId}_${u}", new mutable.ArrayBuffer[Activity]).addOne(newClazzActivity(a))
+          }
         }
       }
     }
-    miniOccupyMap.map(x => (x._1, x._2.map(_.name).mkString(",")))
+    activitiesMap
   }
 
   def getTeacherCourseOccupy(project: Project, semester: Semester, teacher: Teacher): collection.Map[String, String] = {
@@ -143,4 +176,27 @@ class OccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) {
     }
   }
 
+  private def newClazzActivity(ma: MiniClazzActivity): Activity = {
+    val na = new Activity
+    na.id = Some(ma.id)
+    na.time = new WeekTime(ma.time)
+    na.places = ma.places.getOrElse("")
+    na.activity = ma.miniClazz.course.name
+    val users: Iterable[Named] = ma.teacher ++ ma.coach1 ++ ma.coach2
+    na.users = Option(users.map(_.name).mkString(","))
+    na.comments = Option(ma.miniClazz.stds.map(_.name).mkString(","))
+    na
+  }
+
+  private def newCoachActivity(ma: MiniClazzActivity): Activity = {
+    val na = new Activity
+    na.id = Some(ma.id)
+    na.time = new WeekTime(ma.time)
+    na.places = ma.places.getOrElse("")
+    na.activity = ma.miniClazz.course.name
+    val users = ma.coach1 ++ ma.coach2
+    na.users = Option(users.map(_.name).mkString(","))
+    na.comments = Option(ma.miniClazz.stds.map(_.name).mkString(","))
+    na
+  }
 }

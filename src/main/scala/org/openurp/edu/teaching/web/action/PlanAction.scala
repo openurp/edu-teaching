@@ -29,6 +29,8 @@ import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.LocalTime
 
+/** 教师授课计划管理
+ */
 class PlanAction extends TeacherSupport {
 
   var clazzProvider: ClazzProvider = _

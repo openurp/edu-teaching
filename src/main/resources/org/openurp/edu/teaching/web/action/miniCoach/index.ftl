@@ -112,7 +112,7 @@
         [#assign unitActivities = {}/]
         [#list clazz.activities as act]
           [#assign unit]${act.time.weekday.id}_${act.beginUnit}_${act.endUnit}[/#assign]
-          [#if !unitActivities[unit]?? || (((act.advisor1.id)!0) == me.id || ((act.advisor2.id)!0) == me.id)]
+          [#if !unitActivities[unit]?? || (((act.coach1.id)!0) == me.id || ((act.coach2.id)!0) == me.id)]
             [#assign unitActivities = unitActivities + {unit:act}/]
           [/#if]
         [/#list]
@@ -120,9 +120,9 @@
         [#list unitActivities as unit,act]
           <span class="text-muted">时间：</span>${weekdays[act.time.weekday.id]} (${act.time.beginAt}~${act.time.endAt})${act.beginUnit}~${act.endUnit}节
           <br><span class="text-muted">地点：</span>${act.places!}
-          [#if act.advisor1?? || act.advisor2??]<br><span class="text-muted">辅导：</span>${(act.advisor1.name)!} ${(act.advisor2.name)!}[/#if]
+          [#if act.coach1?? || act.coach2??]<br><span class="text-muted">辅导：</span>${(act.coach1.name)!} ${(act.coach2.name)!}[/#if]
           <div>
-            [#if (((act.advisor1.id)!0) == me.id || ((act.advisor2.id)!0) == me.id)]
+            [#if (((act.coach1.id)!0) == me.id || ((act.coach2.id)!0) == me.id)]
               [@b.a href="!edit?std.id=${std.id}&course.id=${course.id}&semester.id=${semester.id}&unit=${unit}"
                                               class="btn btn-sm btn-link"]<i class="fa-solid fa-edit"></i>修改[/@]
               [@b.a href="!remove?clazz.id=${clazz.id}&unit=${unit}"

@@ -255,9 +255,9 @@ function isTimeConflictWith(otherTable) {
 }
 
 /**
- * aggreagate activity of same course. first merge the activity of same
- * (teacher,course,room). then output mashal vaildWeek string . if course is
- * null. the course name will be ommited in last string. style is
+ * aggregate activity of same course. first merge the activity of same
+ * (teacher,course,room). then output marshal vaildWeek string . if course is
+ * null. the course name will be omitted in last string. style is
  * -------------------------------- | teacher1Name course1Name | |
  * (odd1-2,room1Name) | | (even2-4,room2Name) | | teacher2Name course1Name | |
  * (odd3-6,room1Name) | | (even5-8,room2Name) |
@@ -273,8 +273,13 @@ function marshalByTeacherCourse(index) {
     if (this.activities[index].length == 1) {
         var cname = this.activities[index][0].courseName;
         var tname = this.activities[index][0].teacherName;
-        return tname + " " + cname + delimiter + "("
+        var schedule = this.activities[index][0].marshal();
+        if(schedule){
+          return tname + " " + cname + delimiter + "("
                 + this.activities[index][0].marshal() + ")";
+        }else{
+          return tname + " " + cname;
+        }
     } else {
         var marshalString = "";
         var tempActivities = new Array();
@@ -350,7 +355,7 @@ function isSameActivities(first, second) {
 }
 
 // new taskAcitvity
-function TaskActivity(teacherId, teacherName, courseId, courseName, roomId,
+function ClazzActivity(teacherId, teacherName, courseId, courseName, roomId,
         roomName, vaildWeeks, taskId, places) {
     this.teacherId = teacherId;
     this.teacherName = teacherName;
@@ -362,7 +367,7 @@ function TaskActivity(teacherId, teacherName, courseId, courseName, roomId,
     this.taskId = taskId;
     this.marshal = marshalValidWeeks;
     this.addAbbreviate = addAbbreviate;
-    this.clone = cloneTaskActivity;
+    this.clone = cloneClazzActivity;
     this.canMergeWith = canMergeWith;
     this.isSame = isSameActivity;
     this.toString = activityInfo;
@@ -370,8 +375,8 @@ function TaskActivity(teacherId, teacherName, courseId, courseName, roomId,
 }
 
 // clone a activity
-function cloneTaskActivity() {
-    return new TaskActivity(this.teacherId, this.teacherName, this.courseId,
+function cloneClazzActivity() {
+    return new ClazzActivity(this.teacherId, this.teacherName, this.courseId,
             this.courseName, this.roomId, this.roomName, this.vaildWeeks,
             this.taskId, this.places);
 }
@@ -505,7 +510,7 @@ function CourseTable(beginOn, courseUnits) {
             weekstate_str = this.convertWeekstate2ReverseString(weekstate,
                     weeks);
         }
-        return new TaskActivity(teacherId, teacherName, courseId, courseName,
+        return new ClazzActivity(teacherId, teacherName, courseId, courseName,
                 roomId, roomName, weekstate_str, taskId, places)
     }
 
@@ -707,12 +712,12 @@ function ActivityCluster(date, courseId, courseName, weeks, places) {
     /***************************************************************************
      * 添加一个小节中的教学活动组成一个活动集. * *
      **************************************************************************/
-    // add acitity to cluster.and weekInex from 0 to weeks-1
+    // add activity to cluster.and weekInex from 0 to weeks-1
     this.add = function(teacherId, teacherName, roomId, roomName, weekIndex) {
         // alert("addActivityToCluster:"+weekIndex)
         if (null == this.weeksMap[teacherId + roomId]) {
             this.weeksMap[teacherId + roomId] = new Array(this.weeks);
-            this.activityMap[teacherId + roomId] = new TaskActivity(teacherId,
+            this.activityMap[teacherId + roomId] = new ClazzActivity(teacherId,
                     teacherName, this.courseId, this.courseName, roomId,
                     roomName, "");
         }
@@ -720,8 +725,8 @@ function ActivityCluster(date, courseId, courseName, weeks, places) {
     }
     /*
      * construct a valid Weeks from this.weeksMap by key teacherRoomId this
-     * startweek is the position of this.weeksMap[teacherRoomId] in return
-     * validWeekStr also it has mininal value 1;
+     * start week is the position of this.weeksMap[teacherRoomId] in return
+     * validWeekStr also it has minimal value 1;
      */
     this.buildWeekstate = function(teacherRoomId) {
         var firstWeeks = new Array(weeksPerYear);

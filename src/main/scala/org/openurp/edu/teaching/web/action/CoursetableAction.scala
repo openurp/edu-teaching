@@ -29,6 +29,7 @@ import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.{ClazzProvider, WeekTimeBuilder}
 import org.openurp.edu.schedule.service.CourseTable
 import org.openurp.edu.service.Features
+import org.openurp.edu.teaching.web.helper.MiniClazzOccupyHelper
 import org.openurp.starter.web.helper.ProjectProfile
 import org.openurp.starter.web.support.TeacherSupport
 
@@ -72,6 +73,11 @@ class CoursetableAction extends TeacherSupport {
     put("showClazzIndex", getConfig(Features.Clazz.IndexSupported))
     put("teachingNatures", codeService.get(classOf[TeachingNature]))
     put("table", table)
+    val occupyHelper = new MiniClazzOccupyHelper(entityDao, null)
+    val mini1 = occupyHelper.getTeacherMiniActivities(project, semester, teacher)
+    val mini2 = occupyHelper.getCoachMiniActivities(project, semester, getUser)
+    put("miniActivities", occupyHelper.mergeActivities(mini1, mini2))
+
     ProjectProfile.set(project)
     forward()
   }

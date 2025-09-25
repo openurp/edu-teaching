@@ -34,7 +34,7 @@ import org.openurp.base.model.{Project, Semester, User}
 import org.openurp.base.std.model.Student
 import org.openurp.edu.clazz.domain.{ClazzProvider, WeekTimeBuilder}
 import org.openurp.edu.clazz.model.{MiniClazz, MiniClazzActivity}
-import org.openurp.edu.teaching.web.helper.OccupyHelper
+import org.openurp.edu.teaching.web.helper.MiniClazzOccupyHelper
 import org.openurp.starter.web.support.TeacherSupport
 
 /** 小课艺术辅导安排
@@ -54,7 +54,7 @@ class MiniCoachAction extends TeacherSupport {
     val me = getUser
     val q = OqlBuilder.from[MiniClazz](classOf[MiniClazzActivity].getName, "activity")
     q.where("activity.miniClazz.semester=:semester", semester)
-    q.where("activity.advisor1 = :me or activity.advisor2 = :me", me)
+    q.where("activity.coach1 = :me or activity.coach2 = :me", me)
     q.select("distinct activity.miniClazz")
     val clazzes = entityDao.search(q)
 
@@ -65,7 +65,7 @@ class MiniCoachAction extends TeacherSupport {
       std.grade.code + std.name
     }(new CollatorOrdering(true)))
 
-    val occupyHelper = new OccupyHelper(entityDao, null)
+    val occupyHelper = new MiniClazzOccupyHelper(entityDao, null)
     put("occupyMap", occupyHelper.getCoachMiniOccupy(me, clazzes))
     put("maxWeekday", occupyHelper.maxWeekday)
     put("maxUnit", occupyHelper.maxUnit)
@@ -82,7 +82,7 @@ class MiniCoachAction extends TeacherSupport {
     val q = OqlBuilder.from(classOf[MiniClazz], "miniClazz")
     q.where("miniClazz.semester=:semester", semester)
     q.where("miniClazz.coachHours < :maxCoachHour", 18 * 2)
-    //q.where("exists(from miniClazz.activities as activity where activity.advisor1 is not null or activity.advisor2 is not null)")
+    //q.where("exists(from miniClazz.activities as activity where activity.coach1 is not null or activity.coach2 is not null)")
     QueryHelper.populate(q)
     QueryHelper.sort(q)
     q.tailOrder("miniClazz.id")
@@ -132,11 +132,11 @@ class MiniCoachAction extends TeacherSupport {
 
     val project = std.project
     val me = getUser
-    val occupyHelper = new OccupyHelper(entityDao, clazzProvider)
+    val occupyHelper = new MiniClazzOccupyHelper(entityDao, clazzProvider)
     val miniOccupy = occupyHelper.getCoachMiniOccupy(project, semester, me)
 
-    if (!activity.persisted || activity.advisor1.isEmpty && activity.advisor2.isEmpty) {
-      activity.advisor1 = Some(me)
+    if (!activity.persisted || activity.coach1.isEmpty && activity.coach2.isEmpty) {
+      activity.coach1 = Some(me)
     }
     put("teacherOccupyMap", miniOccupy)
     put("stdOccupyMap", occupyHelper.getStudentOccupy(std, semester))
@@ -158,11 +158,11 @@ class MiniCoachAction extends TeacherSupport {
     if (my.isEmpty) {
       val coachs = getCoachActivities(clazz, get("unit"), me)
       coachs foreach { a =>
-        if (a.advisor1.contains(me)) {
-          a.advisor1 = None
+        if (a.coach1.contains(me)) {
+          a.coach1 = None
         }
-        if (a.advisor2.contains(me)) {
-          a.advisor2 = None
+        if (a.coach2.contains(me)) {
+          a.coach2 = None
         }
       }
       entityDao.saveOrUpdate(clazz)
@@ -176,7 +176,7 @@ class MiniCoachAction extends TeacherSupport {
   }
 
   private def getCoachActivities(clazz: MiniClazz, unit: Option[String], coach: User): Iterable[MiniClazzActivity] = {
-    val hasMe = clazz.activities filter { a => a.advisor1.contains(coach) || a.advisor2.contains(coach) }
+    val hasMe = clazz.activities filter { a => a.coach1.contains(coach) || a.coach2.contains(coach) }
     unit match {
       case Some(u) => hasMe.filter(x => s"${x.time.weekday.id}_${x.beginUnit}_${x.endUnit}" == u)
       case None => hasMe
@@ -191,7 +191,7 @@ class MiniCoachAction extends TeacherSupport {
    * @return
    */
   private def getMyCoachActivities(clazz: MiniClazz, unit: Option[String], coach: User): Iterable[MiniClazzActivity] = {
-    val hasMe = clazz.activities filter { a => a.advisor1.contains(coach) || a.advisor2.contains(coach) }
+    val hasMe = clazz.activities filter { a => a.coach1.contains(coach) || a.coach2.contains(coach) }
     val my = hasMe.filter(_.teacher.isEmpty)
     unit match {
       case Some(u) => my.filter(x => s"${x.time.weekday.id}_${x.beginUnit}_${x.endUnit}" == u)
@@ -209,8 +209,8 @@ class MiniCoachAction extends TeacherSupport {
     val course = entityDao.get(classOf[Course], getLongId("course"))
     val semester = entityDao.get(classOf[Semester], getIntId("semester"))
 
-    val advisor1 = Some(me)
-    val advisor2 = getLong("advisor2.id").map(id => entityDao.get(classOf[User], id))
+    val coach1 = Some(me)
+    val coach2 = getLong("coach2.id").map(id => entityDao.get(classOf[User], id))
 
     val query = OqlBuilder.from(classOf[MiniClazz], "clazz")
     query.where("clazz.semester=:semester and clazz.course=:course", semester, course)
@@ -246,8 +246,8 @@ class MiniCoachAction extends TeacherSupport {
 
           activity.time = time
           activity.teacher = None //不能设置老师，这是单独的艺术辅导
-          activity.advisor1 = advisor1
-          activity.advisor2 = advisor2
+          activity.coach1 = coach1
+          activity.coach2 = coach2
           activity.beginUnit = beginUnit.indexno.toShort
           activity.endUnit = endUnit.indexno.toShort
           activity.places = places
@@ -259,8 +259,8 @@ class MiniCoachAction extends TeacherSupport {
         val unit = get("unit").get
         val activities = clazz.activities.filter(x => s"${x.time.weekday.id}_${x.beginUnit}_${x.endUnit}" == unit)
         activities foreach { activity =>
-          activity.advisor1 = advisor1
-          activity.advisor2 = advisor2
+          activity.coach1 = coach1
+          activity.coach2 = coach2
         }
         entityDao.saveOrUpdate(clazz)
         businessLogger.info(s"设置了${std.name}的艺术辅导老师", clazz.id, ActionContext.current.params)

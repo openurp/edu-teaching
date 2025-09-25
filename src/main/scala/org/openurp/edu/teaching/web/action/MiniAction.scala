@@ -34,7 +34,7 @@ import org.openurp.base.service.TermCalculator
 import org.openurp.base.std.model.{Student, StudentTutor}
 import org.openurp.edu.clazz.domain.{ClazzProvider, WeekTimeBuilder}
 import org.openurp.edu.clazz.model.{MiniClazz, MiniClazzActivity}
-import org.openurp.edu.teaching.web.helper.{OccupyHelper, StudentStateHelper}
+import org.openurp.edu.teaching.web.helper.{MiniClazzOccupyHelper, StudentStateHelper}
 import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.LocalDate
@@ -81,7 +81,7 @@ class MiniAction extends TeacherSupport {
       }
     }
 
-    val occupyHelper = new OccupyHelper(entityDao, clazzProvider)
+    val occupyHelper = new MiniClazzOccupyHelper(entityDao, clazzProvider)
     put("miniOccupyMap", occupyHelper.getTeacherMiniOccupy(project, semester, teacher))
     put("occupyMap", occupyHelper.getTeacherCourseOccupy(project, semester, teacher))
     put("maxWeekday", occupyHelper.maxWeekday)
@@ -128,11 +128,11 @@ class MiniAction extends TeacherSupport {
 
     val project = std.project
     val teacher = getTeacher
-    val occupyHelper = new OccupyHelper(entityDao, clazzProvider)
+    val occupyHelper = new MiniClazzOccupyHelper(entityDao, clazzProvider)
     val courseOccupy = occupyHelper.getTeacherCourseOccupy(project, semester, teacher)
     val miniOccupy = occupyHelper.getTeacherMiniOccupy(project, semester, teacher)
 
-    put("teacherOccupyMap", occupyHelper.merge(courseOccupy, miniOccupy))
+    put("teacherOccupyMap", occupyHelper.mergeOccupy(courseOccupy, miniOccupy))
     put("stdOccupyMap", occupyHelper.getStudentOccupy(std, semester))
     put("maxWeekday", occupyHelper.maxWeekday)
     put("maxUnit", occupyHelper.maxUnit)
@@ -163,8 +163,8 @@ class MiniAction extends TeacherSupport {
     val course = entityDao.get(classOf[Course], getLongId("course"))
     val semester = entityDao.get(classOf[Semester], getIntId("semester"))
 
-    val advisor1 = getLong("advisor1.id").map(id => entityDao.get(classOf[User], id))
-    val advisor2 = getLong("advisor2.id").map(id => entityDao.get(classOf[User], id))
+    val coach1 = getLong("coach1.id").map(id => entityDao.get(classOf[User], id))
+    val coach2 = getLong("coach2.id").map(id => entityDao.get(classOf[User], id))
 
     val query = OqlBuilder.from(classOf[MiniClazz], "clazz")
     query.where("clazz.semester=:semester and clazz.course=:course", semester, course)
@@ -207,8 +207,8 @@ class MiniAction extends TeacherSupport {
 
       activity.time = time
       activity.teacher = Some(me)
-      activity.advisor1 = advisor1
-      activity.advisor2 = advisor2
+      activity.coach1 = coach1
+      activity.coach2 = coach2
       activity.beginUnit = beginUnit.indexno.toShort
       activity.endUnit = endUnit.indexno.toShort
       activity.places = places
