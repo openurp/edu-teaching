@@ -24,7 +24,7 @@ ThisBuild / homepage := Some(url("http://openurp.github.io/edu-teaching/index.ht
 
 val apiVer = "0.47.0"
 val starterVer = "0.4.1"
-val baseVer = "0.4.56"
+val baseVer = "0.4.57"
 val eduCoreVer = "0.3.18"
 
 val openurp_edu_api = "org.openurp.edu" % "openurp-edu-api" % apiVer
