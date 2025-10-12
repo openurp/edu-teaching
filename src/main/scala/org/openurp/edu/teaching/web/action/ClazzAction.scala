@@ -305,7 +305,9 @@ class ClazzAction extends ActionSupport {
     val bulletin = getBulletin().getOrElse(new ClazzBulletin)
     if (bulletin.persisted) {
       bulletin.contactQrcodePath foreach { p =>
-        EmsApp.getBlobRepository(true).remove(p)
+        if (Strings.isNotBlank(p)) {
+          EmsApp.getBlobRepository(true).remove(p)
+        }
       }
       if (validOwnership(bulletin.clazz)) {
         entityDao.remove(bulletin)
