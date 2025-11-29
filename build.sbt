@@ -1,7 +1,7 @@
 import org.openurp.parent.Settings.*
 
 ThisBuild / organization := "org.openurp.edu.teaching"
-ThisBuild / version := "0.0.12-SNAPSHOT"
+ThisBuild / version := "0.0.12"
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
@@ -22,10 +22,10 @@ ThisBuild / developers := List(
 ThisBuild / description := "OpenURP Edu Teaching"
 ThisBuild / homepage := Some(url("http://openurp.github.io/edu-teaching/index.html"))
 
-val apiVer = "0.47.0"
-val starterVer = "0.4.1"
-val baseVer = "0.4.57"
-val eduCoreVer = "0.3.18"
+val apiVer = "0.48.2"
+val starterVer = "0.4.8"
+val baseVer = "0.4.63"
+val eduCoreVer = "0.4.3"
 
 val openurp_edu_api = "org.openurp.edu" % "openurp-edu-api" % apiVer
 val openurp_stater_web = "org.openurp.starter" % "openurp-starter-web" % starterVer

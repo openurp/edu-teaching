@@ -19,7 +19,7 @@
       <tr>
         <td style="background-color:${unit.part.color};" title="${unit.beginAt}-${unit.endAt}">${unit.name}<span style="font-size:0.6rem;">${unit.beginAt}-${unit.endAt}</span></td>
         [#list table.weekdays as wd]
-        <td id="TD${unit_index+(wd.id-1)*table.timeSetting.units?size}_${tableIndex}"  style="font-size:${fontSize?default(12)}px"></td>
+        <td id="TD${unit_index+(wd.id-1)*table.timeSetting.units?size}_${tableIndex}" style="font-size:${fontSize?default(12)}px"></td>
         [/#list]
       </tr>
       [/#list]
