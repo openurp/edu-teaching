@@ -21,10 +21,8 @@ import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.time.WeekTime
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.data.model.pojo.Named
-import org.openurp.base.edu.model.Course
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester, User}
-import org.openurp.base.std.model.Student
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
 import org.openurp.edu.clazz.model.{MiniClazz, MiniClazzActivity}
@@ -34,18 +32,6 @@ import scala.collection.mutable
 class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) {
   var maxWeekday = 5
   var maxUnit = 0
-
-  def mergeOccupy(m1: collection.Map[String, String], m2: collection.Map[String, String]): collection.Map[String, String] = {
-    val rs = new mutable.HashMap[String, String]
-    rs.addAll(m1)
-    m2 foreach { case (k, v) =>
-      rs.get(k) match {
-        case None => rs.put(k, v)
-        case Some(v2) => if (v != v2) rs.put(k, v + " " + v2)
-      }
-    }
-    rs
-  }
 
   def mergeActivities(m1: collection.Map[String, collection.Seq[ActivityInfo]],
                       m2: collection.Map[String, collection.Seq[ActivityInfo]]): collection.Map[String, collection.Seq[ActivityInfo]] = {
@@ -60,19 +46,6 @@ class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) 
     rs
   }
 
-  def getCoachMiniOccupy(project: Project, semester: Semester, coach: User): collection.Map[String, String] = {
-    val q = OqlBuilder.from[MiniClazz](classOf[MiniClazzActivity].getName, "activity")
-    q.where("activity.miniClazz.semester=:semester", semester)
-    q.where("activity.coach1 = :me or activity.coach2 = :me", coach)
-    q.select("distinct activity.miniClazz")
-    getCoachMiniOccupy(coach, entityDao.search(q))
-  }
-
-  def getCoachMiniOccupy(coach: User, clazzes: Iterable[MiniClazz]): collection.Map[String, String] = {
-    val activities = getCoachMiniActivities(coach, clazzes)
-    activities.map(x => (x._1, x._2.map(_.comments.getOrElse("").distinct).mkString(",")))
-  }
-
   def getCoachMiniActivities(project: Project, semester: Semester, coach: User): collection.Map[String, collection.Seq[ActivityInfo]] = {
     val q = OqlBuilder.from[MiniClazz](classOf[MiniClazzActivity].getName, "activity")
     q.where("activity.miniClazz.semester=:semester", semester)
@@ -81,7 +54,7 @@ class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) 
     getCoachMiniActivities(coach, entityDao.search(q))
   }
 
-  def getCoachMiniActivities(coach: User, clazzes: Iterable[MiniClazz]): collection.Map[String, collection.Seq[ActivityInfo]] = {
+  private def getCoachMiniActivities(coach: User, clazzes: Iterable[MiniClazz]): collection.Map[String, collection.Seq[ActivityInfo]] = {
     val activities = clazzes.flatMap(_.activities)
     val activitiesMap = Collections.newMap[String, mutable.Buffer[ActivityInfo]]
     activities foreach { a =>
@@ -95,11 +68,6 @@ class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) 
       }
     }
     activitiesMap
-  }
-
-  def getTeacherMiniOccupy(project: Project, semester: Semester, teacher: Teacher): collection.Map[String, String] = {
-    val activities = getTeacherMiniActivities(project, semester, teacher)
-    activities.map(x => (x._1, x._2.map(_.comments.getOrElse("")).distinct.mkString(",")))
   }
 
   def getTeacherMiniActivities(project: Project, semester: Semester, teacher: Teacher): collection.Map[String, collection.Seq[ActivityInfo]] = {
@@ -121,43 +89,6 @@ class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) 
       }
     }
     activitiesMap
-  }
-
-  def getTeacherCourseOccupy(project: Project, semester: Semester, teacher: Teacher): collection.Map[String, String] = {
-    val occupyMap = Collections.newMap[String, mutable.Set[Course]]
-    val scheduleSetting = getScheduleSetting(project, semester)
-    if (scheduleSetting.timePublished) {
-      clazzProvider.getClazzes(semester, teacher, project) foreach { clazz =>
-        clazz.schedule.activities foreach { a =>
-          val weekdayId = a.time.weekday.id
-          if weekdayId > maxWeekday then maxWeekday = weekdayId
-          (a.beginUnit.intValue to a.endUnit.intValue) foreach { u =>
-            if u > maxUnit then maxUnit = u
-            occupyMap.getOrElseUpdate(s"${weekdayId}_${u}", new mutable.HashSet[Course]).addOne(clazz.course)
-          }
-        }
-      }
-    }
-    occupyMap.map(x => (x._1, x._2.map(_.name).mkString(",")))
-  }
-
-  def getStudentOccupy(std: Student, semester: Semester): collection.Map[String, String] = {
-    val occupyMap = Collections.newMap[String, mutable.Set[Course]]
-    val scheduleSetting = getScheduleSetting(std.project, semester)
-    if (scheduleSetting.timePublished) {
-      clazzProvider.getClazzes(semester, std) foreach { ct =>
-        val clazz = ct.clazz
-        clazz.schedule.activities foreach { a =>
-          val weekdayId = a.time.weekday.id
-          if weekdayId > maxWeekday then maxWeekday = weekdayId
-          (a.beginUnit.intValue to a.endUnit.intValue) foreach { u =>
-            if u > maxUnit then maxUnit = u
-            occupyMap.getOrElseUpdate(s"${weekdayId}_${u}", new mutable.HashSet[Course]).addOne(clazz.course)
-          }
-        }
-      }
-    }
-    occupyMap.map(x => (x._1, x._2.map(_.name).mkString(",")))
   }
 
   // 该学期课程安排是否发布

@@ -30,7 +30,9 @@ class DefaultModule extends BindModule {
     bind(classOf[PlanAction])
 
     bind(classOf[GuidanceAction])
-    bind(classOf[MiniAction], classOf[MiniCoachAction])
+    bind(classOf[MiniAction])
+    bind(classOf[MiniCoachAction])
+
     bind(classOf[GaCalculatorAction])
   }
 }
