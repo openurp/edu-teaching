@@ -20,7 +20,7 @@ package org.openurp.edu.teaching.web.action
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.Strings
 import org.beangle.data.dao.OqlBuilder
-import org.beangle.ems.app.web.WebBusinessLogger
+import org.beangle.ems.app.log.WebBusinessLogger
 import org.beangle.security.Securities
 import org.beangle.webmvc.view.View
 import org.openurp.base.hr.model.Teacher
@@ -41,7 +41,6 @@ import org.openurp.starter.web.support.TeacherSupport
 
 import java.time.Instant
 import scala.collection.immutable.Map
-import scala.collection.mutable
 
 class GradeAction extends TeacherSupport {
 
@@ -287,25 +286,26 @@ class GradeAction extends TeacherSupport {
       publishables.addOne(new GradeType(GradeType.Final))
       clazzGradeService.publish(clazz.id + "", publishables.toArray, true)
     }
-    val params = new StringBuilder("&clazzId=" + clazz.id)
-    params.append("&gradeTypeIds=").append(gradeTypes.map(_.id).mkString(","))
+    val params = Collections.newMap[String, Any]
+    params.put("clazzId", clazz.id)
+    params.put("gradeTypeIds", gradeTypes.map(_.id).mkString(","))
     val toInputGradeTypeIdStr = get("toInputGradeType.id", "")
     if (Strings.isNotEmpty(toInputGradeTypeIdStr)) {
-      params.append("&toInputGradeType.ids=" + get("toInputGradeType.id"))
+      params.put("toInputGradeType.ids ", get("toInputGradeType.id"))
       val toInputGradeTypeIds = Strings.splitToInt(toInputGradeTypeIdStr)
       for (gradeTypeId <- toInputGradeTypeIds) {
         if (gradeTypeId != GradeType.EndGa) {
-          params.append("&" + gradeTypeId + "Percent=" + get(gradeTypeId + "Percent", ""))
+          params.put(gradeTypeId + "Percent", get(gradeTypeId + "Percent", ""))
         }
       }
     }
     //如果是启用两遍录入，则需要告诉页面是第二遍录入
     if (inputTwiceEnabled) {
       val afterInputComplete = clazzGradeService.isInputComplete(clazz, takers, gradeTypes)
-      if !beforeInputComplete && afterInputComplete then params.append("&secondInput=1")
+      if !beforeInputComplete && afterInputComplete then params.put("secondInput", "1")
     }
     businessLogger.info((if (submit) "录入" else "提交") + s"${clazz.crn}的期末总评成绩", clazz.id, Map.empty)
-    redirect(if submit then "report" else "inputGa", params.toString, "info.save.success")
+    redirect(if submit then "report" else "inputGa", params, "info.save.success")
   }
 
   def removeGa(): View = {
@@ -317,7 +317,7 @@ class GradeAction extends TeacherSupport {
 
     clazzGradeService.remove(clazz, getCode(classOf[GradeType], GradeType.EndGa))
     businessLogger.info(s"删除了${clazz.crn}的期末总评成绩", clazz.id, Map.empty)
-    redirect("clazz", "clazzId=" + clazz.id, "info.remove.success")
+    redirect("clazz", Map("clazzId" -> clazz.id), "info.remove.success")
   }
 
   /** 撤回期末总评
@@ -338,7 +338,7 @@ class GradeAction extends TeacherSupport {
     gradeState.getState(new GradeType(GradeType.EndGa)).status = Grade.Status.New
     entityDao.saveOrUpdate(gradeState)
     clazzGradeService.recalculate(gradeState)
-    redirect("clazz", "clazzId=" + clazz.id, "撤回成功")
+    redirect("clazz", Map("clazzId" -> clazz.id), "撤回成功")
   }
 
   def revokeMakeup(): View = {
@@ -357,7 +357,7 @@ class GradeAction extends TeacherSupport {
     }
     entityDao.saveOrUpdate(gradeState)
     clazzGradeService.recalculate(gradeState)
-    redirect("clazz", "clazzId=" + clazz.id, "撤回成功")
+    redirect("clazz", Map("clazzId" -> clazz.id), "撤回成功")
   }
 
   def inputMakeup(): View = {
@@ -444,16 +444,17 @@ class GradeAction extends TeacherSupport {
 
     businessLogger.info((if (submit) "录入" else "提交") + s"${clazz.crn}的补缓考成绩", clazz.id, Map.empty)
     if submit then
-      redirect("report", s"&clazzId=${clazz.id}&gradeTypeId=${GradeType.MakeupGa}", "info.save.success")
+      redirect("report", Map("clazzId" -> clazz.id, "gradeTypeId" -> GradeType.MakeupGa), "info.save.success")
     else
-      val params = new StringBuilder("&clazzId=" + clazz.id)
-      params.append("&gradeTypeIds=").append(gradeTypes.map(_.id).mkString(","))
+      val params = Collections.newMap[String, Any]
+      params.put("clazzId", clazz.id)
+      params.put("gradeTypeIds", gradeTypes.map(_.id).mkString(","))
       //如果是启用两遍录入，则需要告诉页面是第二遍录入
       if (inputTwiceEnabled) {
         val afterInputComplete = clazzGradeService.isInputComplete(clazz, takers, gradeTypes)
-        if !beforeInputComplete && afterInputComplete then params.append("&secondInput=1")
+        if !beforeInputComplete && afterInputComplete then params.put("secondInput", "1")
       }
-      redirect("inputMakeup", params.toString, "info.save.success")
+      redirect("inputMakeup", params.toMap, "info.save.success")
   }
 
   def removeMakeup(): View = {
@@ -465,7 +466,7 @@ class GradeAction extends TeacherSupport {
 
     clazzGradeService.remove(clazz, getCode(classOf[GradeType], GradeType.MakeupGa))
     businessLogger.info(s"删除了${clazz.crn}的补缓成绩", clazz.id, Map.empty)
-    redirect("clazz", "clazzId=" + clazz.id, "info.remove.success")
+    redirect("clazz", Map("clazzId" -> clazz.id), "info.remove.success")
   }
 
   def report(): View = {
@@ -627,7 +628,7 @@ class GradeAction extends TeacherSupport {
 
     if (!s.checkOpen(Instant.now)) return redirect("index", "录入尚未开放")
     if (gradeState.isStatus(new GradeType(gaGradeTypeId), checkedStatus)) {
-      redirect("submitResult", "classId=" + clazz.id, "info.save.success")
+      redirect("submitResult", Map("classId" -> clazz.id), "info.save.success")
     } else null
   }
 

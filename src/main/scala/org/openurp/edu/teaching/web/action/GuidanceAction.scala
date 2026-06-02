@@ -24,7 +24,7 @@ import org.beangle.webmvc.view.View
 class GuidanceAction extends ActionSupport {
 
   def index(): View = {
-    redirect(to(Ems.webapp + "/edu/miniclazz/tutor/guidance"),"")
+    redirect(to(Ems.webapp + "/edu/miniclazz/tutor/grade"),"")
   }
 
 }

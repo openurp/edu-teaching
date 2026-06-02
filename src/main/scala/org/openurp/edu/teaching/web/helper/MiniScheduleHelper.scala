@@ -23,7 +23,7 @@ import org.beangle.commons.lang.Strings
 import org.beangle.commons.lang.time.{WeekState, WeekTime, Weeks}
 import org.openurp.base.model.Semester
 import org.openurp.edu.clazz.domain.WeekTimeBuilder
-import org.openurp.edu.clazz.model.{MiniClazz, MiniClazzActivity}
+import org.openurp.edu.miniclazz.model.{MiniClazz, MiniClazzActivity}
 
 object MiniScheduleHelper {
 

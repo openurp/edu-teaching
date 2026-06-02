@@ -9,6 +9,7 @@
     <module class="org.openurp.edu.clazz.service.impl.DefaultBindModule"/>
     <module class="org.openurp.edu.teaching.web.action.DefaultModule"/>
     <module class="org.openurp.edu.grade.service.DefaultModule"/>
+    <module class="org.openurp.edu.program.service.DefaultModule"/>
     <module class="org.openurp.edu.grade.service.ConfigModule"/>
   </cdi>
 

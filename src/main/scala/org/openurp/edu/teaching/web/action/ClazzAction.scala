@@ -23,14 +23,14 @@ import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.Strings
 import org.beangle.commons.lang.time.HourMinute
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
-import org.beangle.doc.transfer.Format
-import org.beangle.doc.transfer.exporter.{ExcelTemplateExporter, ExportContext}
 import org.beangle.ems.app.{Ems, EmsApp}
 import org.beangle.security.Securities
+import org.beangle.she.webmvc.PopulateHelper
+import org.beangle.transfer.Format
+import org.beangle.transfer.exporter.{ExcelTemplateExporter, ExportContext}
 import org.beangle.web.servlet.util.RequestUtils
 import org.beangle.webmvc.context.{ActionContext, Params}
 import org.beangle.webmvc.support.ActionSupport
-import org.beangle.webmvc.support.helper.PopulateHelper
 import org.beangle.webmvc.view.{Status, View}
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.User
@@ -49,6 +49,7 @@ import org.openurp.starter.web.helper.ProjectProfile
 
 import java.io.InputStream
 import java.time.{Instant, LocalDate}
+import scala.collection.immutable.Map
 import scala.collection.mutable
 
 class ClazzAction extends ActionSupport {
@@ -124,7 +125,7 @@ class ClazzAction extends ActionSupport {
         }
       }
     }
-    redirect("notices", "clazz.id=" + notice.clazz.id, "info.save.success")
+    redirect("notices", Map("clazz.id" -> notice.clazz.id), "info.save.success")
   }
 
   def removeNotice(): View = {
@@ -139,7 +140,7 @@ class ClazzAction extends ActionSupport {
         entityDao.remove(notice)
       }
     }
-    redirect("notices", "clazz.id=" + clazzId, "info.remove.success")
+    redirect("notices", Map("clazz.id" -> clazzId), "info.remove.success")
   }
 
   def docs(): View = {
@@ -164,7 +165,7 @@ class ClazzAction extends ActionSupport {
       }
       clazzDocService.createDoc(clazz, get("doc.name").get, get("doc.url"), in, fileName)
     }
-    redirect("docs", "clazz.id=" + clazz.id, "info.save.success")
+    redirect("docs", Map("clazz.id" -> clazz.id), "info.save.success")
   }
 
   def removeDoc(): View = {
@@ -179,7 +180,7 @@ class ClazzAction extends ActionSupport {
         entityDao.remove(doc)
       }
     }
-    redirect("docs", "clazz.id=" + clazzId, "info.remove.success")
+    redirect("docs", Map("clazz.id" -> clazzId), "info.remove.success")
   }
 
   /**
@@ -193,23 +194,23 @@ class ClazzAction extends ActionSupport {
     val bulletinId = getLong("bulletin.id").getOrElse(0L)
     if (noticeFileId > 0) {
       val noticeFile = entityDao.get(classOf[ClazzNoticeFile], noticeFileId)
-      val path = EmsApp.getBlobRepository(true).url(noticeFile.filePath)
-      redirect(to(path.get.toString), "x")
+      val path = EmsApp.getBlobRepository(true).uri(noticeFile.filePath)
+      redirect(to(path.toString), "x")
     } else if (docId > 0) {
       val doc = entityDao.get(classOf[ClazzDoc], docId)
       doc.filePath match {
         case None => Status.NotFound
         case Some(p) =>
-          val path = EmsApp.getBlobRepository(true).url(p)
-          redirect(to(path.get.toString), "x")
+          val path = EmsApp.getBlobRepository(true).uri(p)
+          redirect(to(path.toString), "x")
       }
     } else {
       val bulletin = entityDao.get(classOf[ClazzBulletin], bulletinId)
       bulletin.contactQrcodePath match {
         case None => Status.NotFound
         case Some(p) =>
-          val path = EmsApp.getBlobRepository(true).url(p)
-          redirect(to(path.get.toString), "x")
+          val path = EmsApp.getBlobRepository(true).uri(p)
+          redirect(to(path.toString), "x")
       }
     }
   }
@@ -298,7 +299,7 @@ class ClazzAction extends ActionSupport {
         clazzDocService.createBulletinFile(bulletin, part.getInputStream, part.getSubmittedFileName)
       }
     }
-    redirect("bulletin", s"clazz.id=${bulletin.clazz.id}", "info.save.success")
+    redirect("bulletin", Map("clazz.id" -> bulletin.clazz.id), "info.save.success")
   }
 
   def removeBulletin(): View = {
@@ -313,7 +314,7 @@ class ClazzAction extends ActionSupport {
         entityDao.remove(bulletin)
       }
     }
-    redirect("bulletin", s"clazz.id=${bulletin.clazz.id}", "info.remove.success")
+    redirect("bulletin", Map("clazz.id" -> bulletin.clazz.id), "info.remove.success")
   }
 
   def teachingPlan(): View = {
@@ -395,7 +396,7 @@ class ClazzAction extends ActionSupport {
       }
       entityDao.saveOrUpdate(plan)
     }
-    redirect("teachingPlan", s"clazz.id=${plan.clazz.id}", "info.save.success")
+    redirect("teachingPlan", Map("clazz.id" -> plan.clazz.id), "info.save.success")
   }
 
   def removeTeachingPlan(): View = {
@@ -406,7 +407,7 @@ class ClazzAction extends ActionSupport {
         entityDao.remove(p)
       }
     }
-    redirect("teachingPlan", s"clazz.id=${clazz.id}", "info.remove.success")
+    redirect("teachingPlan", Map("clazz.id" -> clazz.id), "info.remove.success")
   }
 
   def info(): View = {

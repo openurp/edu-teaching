@@ -25,7 +25,7 @@ import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Project, Semester, User}
 import org.openurp.edu.clazz.config.ScheduleSetting
 import org.openurp.edu.clazz.domain.ClazzProvider
-import org.openurp.edu.clazz.model.{MiniClazz, MiniClazzActivity}
+import org.openurp.edu.miniclazz.model.{MiniClazz, MiniClazzActivity}
 
 import scala.collection.mutable
 
@@ -114,7 +114,7 @@ class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) 
     na.places = ma.places
     val users: Iterable[Named] = ma.teacher ++ ma.coach1 ++ ma.coach2
     na.users = Option(users.map(_.name).mkString(","))
-    na.comments = Option(ma.miniClazz.stds.map(_.name).mkString(","))
+    na.comments = Option(ma.miniClazz.clazzTakers.map(_.std.name).mkString(","))
     na.activityType = "辅导"
     na.owner = Some(ma.miniClazz.id.toString)
     na
@@ -127,7 +127,7 @@ class MiniClazzOccupyHelper(entityDao: EntityDao, clazzProvider: ClazzProvider) 
     na.places = ma.places
     val users = ma.coach1 ++ ma.coach2
     na.users = Option(users.map(_.name).mkString(","))
-    na.comments = Option(ma.miniClazz.stds.map(_.name).mkString(","))
+    na.comments = Option(ma.miniClazz.clazzTakers.map(_.std.name).mkString(","))
     na.activityType = "上课"
     na.owner = Some(ma.miniClazz.id.toString)
     na
